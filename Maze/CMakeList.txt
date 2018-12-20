@@ -1,0 +1,11 @@
+cmake_minimum_required (VERSION 2.6)
+project (Maze)
+add_executable(Maze piwars.cpp.cxx)
+
+set(SRCS
+  maze.cpp
+  piwars.cpp
+  Robot.cpp
+  Utils.cpp
+  )
+file(GLOB HDRS *.h)
