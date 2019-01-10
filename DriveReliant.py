@@ -10,9 +10,13 @@ import piconzero as pz
 class DriveReliant(Drive) :
     def __init__(self, bot):
         super().__init__(bot)
+        pz.init()
         rv = pz.getRevision()
-        bot.logMsg('Picon zero v%d.%d' % (rv[0],rv[1]))
+        self.bot.logMsg('Picon zero v%d.%d' % (rv[0],rv[1]))
 
+    def __del__(self):
+        pz.cleanup()
+        
     def updateMotorSpeeds(self):
-        pz.setMotor(0, int(128+(127*self.ls)))
-        pz.setMotor(1, int(128+(127*self.rs)))
+        pz.setMotor(0, int(127*self.ls))
+        pz.setMotor(1, int(127*self.rs))

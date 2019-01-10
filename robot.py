@@ -17,7 +17,8 @@ from Bot import Bot
 from Drive import Drive
 from DriveAntiGravity import DriveAntiGravity
 from DriveReliant import DriveReliant
-
+from Echo import Echo
+from CtrlServer import CtrlServer
 from JS import JS, JSCallback
 from Camera import Camera
 from Rainbow import Rainbow
@@ -39,6 +40,7 @@ class VNCbot(Bot, JSCallback):
         # TTD should really validate it's in self.modules
         self.currentmode = "Manual / " + self.modulemode
 
+        # Create the appropriate Drive class for this robot
         if self.drive == 0:
             try:
                 self.drive = DriveAntiGravity(self)
@@ -52,7 +54,9 @@ class VNCbot(Bot, JSCallback):
         if self.drive == 0:
             self.drive == Drive(self)
         self.logMsg("Drive: %s" % (type(self.drive).__name__))
-        
+
+        self.echo = Echo(self)
+        self.ctrlServer = CtrlServer(self)
         self.turtle = Turtle(self)
         self.js = JS(self)
         self.camera = Camera()
@@ -73,7 +77,7 @@ class VNCbot(Bot, JSCallback):
         # Used by Turtle, Calibrate etc - global store so calibrate can update
         self.turnCorrectionFactor=0.915
         self.distCorrectionFactor=1
-        
+
     def next_module(self,auto=None):
         if auto is not None:
             self.logMsg("Finished Auto Module:" + self.modulemode)
@@ -105,7 +109,7 @@ class VNCbot(Bot, JSCallback):
         print(s)
         self.logfile.write(s)
         self.logfile.write("\n")
-        
+
     def leftStick(self, x, y):
         "Notification of a gamepad left analog stick event"
         self.logMsg('LEFT_STICK: %.3f %.3f' % (x, y))

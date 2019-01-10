@@ -90,7 +90,6 @@ class Drive :
             
         # Send to controllers
         self.bot.logMsg('SPEEDS: %.3f %.3f  [FLIP=%d BIAS=%1.3f]' % (ls, rs, self.flip, self.biasCorrection))
-#        self.md25.turn(int(128+(127*rs)), int(128+(127*ls)))
         self.ls = ls
         self.rs = rs
         self.updateMotorSpeeds()
