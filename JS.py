@@ -1,4 +1,8 @@
-#!/usr/bin/python
+# This file is part of the AntiGravity robot control system
+# https://github.com/sconemad/antigravity
+#
+# JS - Joystick input handler
+#
 
 import os
 import struct

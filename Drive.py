@@ -9,6 +9,7 @@ import math
 from Bot import Bot
 
 class Drive :
+
     def __init__(self, bot):
         self.bot = bot
         self.ls = 0
@@ -51,9 +52,7 @@ class Drive :
             d = 5 - (4*((math.pi/2)-self.angle)/math.pi)
             rs = -speed
             ls = speed * d
-            
 
-        
         # Limit speeds
         if (ls > 1): ls = 1
         if (ls < -1): ls = -1
@@ -83,13 +82,9 @@ class Drive :
         # NOTE: Flip=1 actually means go forward.  I think L/R are reversed by accident.
         # so we have this in the "wrong" place after the flip reversal
         # L/R in "abs" terms facing md25.  Even though md25 has fwd speeds -tive
-
-
-
-            
             
         # Send to controllers
-        self.bot.logMsg('SPEEDS: %.3f %.3f  [FLIP=%d BIAS=%1.3f]' % (ls, rs, self.flip, self.biasCorrection))
+        self.bot.logMsg('Drive: %.3f %.3f  [FLIP=%d BIAS=%1.3f]' % (ls, rs, self.flip, self.biasCorrection))
         self.ls = ls
         self.rs = rs
         self.updateMotorSpeeds()

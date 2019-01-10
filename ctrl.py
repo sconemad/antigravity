@@ -1,4 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+
+# This file is part of the AntiGravity robot control system
+# https://github.com/sconemad/antigravity
+#
+# ctrl - Control client app which talks to CtrlServer via /tmp/robot
+#
 
 import os
 import fcntl
@@ -74,6 +80,7 @@ def stdinEvent():
             client.setDrive(1, -math.pi/2)
 
 try:
+    print("AntiGravity robot control client")
     ots = termios.tcgetattr(sys.stdin)
     nts = termios.tcgetattr(sys.stdin)
     nts[3] = nts[3] & ~(termios.ECHO | termios.ICANON)

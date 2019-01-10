@@ -1,4 +1,8 @@
-#!/usr/bin/python
+# This file is part of the AntiGravity robot control system
+# https://github.com/sconemad/antigravity
+#
+# CtrlServer - Server to allow control via UNIX socket (/tmp/robot)
+#
 
 import asyncio
 
@@ -8,7 +12,8 @@ from Echo import Echo
 path = '/tmp/robot'
 count = 0
 
-class CtrlProtocol(asyncio.Protocol) :
+class CtrlProtocol(asyncio.Protocol):
+    
     def __init__(self, ctrl, bot):
         self.ctrl = ctrl
         self.bot = bot
@@ -33,7 +38,8 @@ class CtrlProtocol(asyncio.Protocol) :
     def eof_received(self):
         self.logMsg("Disconnected")
 
-class CtrlServer :
+class CtrlServer:
+    
     def __init__(self, bot):
         self.bot = bot
         loop = asyncio.get_event_loop()

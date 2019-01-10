@@ -1,13 +1,14 @@
-#!/usr/bin/python
-
-#---------------------------------------------
-# Reliant Drive control
+# This file is part of the AntiGravity robot control system
+# https://github.com/sconemad/antigravity
+#
+# DrivePiconZero - Drive controller using Picon Zero
 #
 
 from Drive import Drive
 import piconzero as pz
 
-class DriveReliant(Drive) :
+class DrivePiconZero(Drive):
+    
     def __init__(self, bot):
         super().__init__(bot)
         pz.init()

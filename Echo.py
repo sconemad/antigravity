@@ -1,5 +1,9 @@
+# This file is part of the AntiGravity robot control system
+# https://github.com/sconemad/antigravity
 #
-# Includes code from 4tronix 'hcsr04.py' with the following copyright:
+# Echo sensors interface
+#
+# Includes code from hcsr04.py from 4tronix with the following copyright:
 #
 # Created by Gareth Davies, Mar 2016
 # Copyright 4tronix

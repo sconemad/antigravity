@@ -1,14 +1,18 @@
-#!/usr/bin/python
+# This file is part of the AntiGravity robot control system
+# https://github.com/sconemad/antigravity
+#
+# MD25 - MD25 motor controller interface
+#
 
 import time
-#from Adafruit_I2C import Adafruit_I2C
 import Adafruit_GPIO.I2C as I2C
 
 # ===========================================================================
 # MD25 Class
 # ===========================================================================
 
-class MD25 :
+class MD25:
+
   i2c = None
 
   # Operating Modes
@@ -60,7 +64,6 @@ class MD25 :
   _motor_2_current = 0
   _software_revision = 0
 
-
   # Constructor
   def __init__(self, address=0x58, mode=1, debug=False):
     self.i2c = I2C.Device(address, busnum=1)
@@ -101,7 +104,6 @@ class MD25 :
 #    "Helper function to help with diagnosing I2C read errors"
 #    r = f
 #    if self.deb
-
   
   def readEncoders(self):
     "Reads encoder data"

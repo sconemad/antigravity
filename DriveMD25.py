@@ -1,13 +1,14 @@
-#!/usr/bin/python
-
-#---------------------------------------------
-# AntiGravity Drive control
+# This file is part of the AntiGravity robot control system
+# https://github.com/sconemad/antigravity
+#
+# DriveMD25 - Drive controller using MD25
 #
 
 from Drive import Drive
 from MD25 import MD25
 
-class DriveAntiGravity(Drive) :
+class DriveMD25(Drive):
+
     def __init__(self, bot):
         super().__init__(bot)
         self.md25 = MD25(0x58,1)
