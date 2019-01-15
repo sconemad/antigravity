@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 
   R.initiate(&M);
   const Pos initialrobot = M.GetRobotPos();
-  R.SetMaxSpeed(250.0);  // mm/s
+  R.SetMaxSpeed(3);  // mm/s
   R.AdjustSpeed(Angle(0.0));
 
   try {
