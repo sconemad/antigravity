@@ -23,7 +23,7 @@ class Echo:
 
     def __init__(self, bot):
         self.bot = bot
-        self.maxDist = 500
+        self.maxDist = 1000
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BOARD)
 

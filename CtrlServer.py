@@ -27,16 +27,22 @@ class CtrlProtocol(asyncio.Protocol):
         self.transport = transport
         self.id = count
         self.logMsg("Connected")
+        self.bot.drive.setSpeedFactor(1)
         
     def data_received(self, data):
-        args = data.decode().split()
-        self.logMsg(args)
-        ret = self.ctrl.handleCmd(args)
-        if ret:
-            self.transport.write(str(ret).encode())
+        lines = data.decode().split('\n')
+        for line in lines:
+            args = line.split()
+            if len(args)>0:
+                self.logMsg(args)
+                ret = self.ctrl.handleCmd(args)
+                if ret:
+                    self.logMsg(ret)
+                    self.transport.write(("%s\n"%(str(ret))).encode())
         
     def eof_received(self):
         self.logMsg("Disconnected")
+        self.bot.drive.stop()
 
 class CtrlServer:
     
@@ -53,7 +59,6 @@ class CtrlServer:
         if cmd == 'setDrive':
             speed = float(args[1])
             angle = float(args[2])
-            self.bot.drive.setSpeedFactor(1)
             self.bot.drive.setDrive(speed,angle)
 
         elif cmd == 'getEcho':
