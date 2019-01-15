@@ -144,7 +144,14 @@ class Drive :
 
     def getBatteryVoltage(self):
         return self.md25.readBatteryVoltage()
-        
+
+    def ctrlCmd(self, args):
+        cmd = args[0]
+        if cmd == 'set':
+            speed = float(args[1])
+            angle = float(args[2])
+            self.setDrive(speed,angle)
+    
     speedFactor = 1
     speed = 0.0
     angle = 0.0

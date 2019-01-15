@@ -31,14 +31,14 @@ public:
   void setSpeed(double left, double right)
   {
     char msg[256];
-    sprintf(msg, "setDrive %f %f\n", left, right); 
+    sprintf(msg, "drive set %f %f\n", left, right); 
     send(fd, msg, strlen(msg), 0);
   }
   
   int getDistance(char sensor)
   {
     char msg[256];
-    sprintf(msg, "getEcho %c\n", sensor);
+    sprintf(msg, "echo get %c\n", sensor);
     send(fd, msg, strlen(msg), 0);
     
     int n = recv(fd, msg, 256, 0);

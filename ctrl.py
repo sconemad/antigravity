@@ -36,10 +36,10 @@ class CtrlClient(asyncio.Protocol) :
         self.transport.close()
         
     def setDrive(self, speed, angle):
-        self.transport.write(("setDrive %f %f" % (speed, angle)).encode())
+        self.transport.write(("drive set %f %f" % (speed, angle)).encode())
 
     def getEcho(self, sensor):
-        self.transport.write(("getEcho %s" % (sensor)).encode())
+        self.transport.write(("echo get %s" % (sensor)).encode())
 
 def reconnect():
     loop = asyncio.get_event_loop()

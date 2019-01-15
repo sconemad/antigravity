@@ -57,3 +57,16 @@ class Echo:
         GPIO.setup(echoPin, GPIO.OUT)
         GPIO.output(echoPin, True)
         return distance
+
+    def ctrlCmd(self, args):
+        cmd = args[0]
+        if cmd == 'get':
+            sensor = args[1]
+            if sensor == 'C':
+                return self.getDistance(Echo.ECHO_CENTRE)
+            elif sensor == 'L':
+                return self.getDistance(Echo.ECHO_LEFT)
+            elif sensor == 'R':
+                return self.getDistance(Echo.ECHO_RIGHT)
+            else:
+                return 0

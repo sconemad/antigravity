@@ -10,7 +10,8 @@ from Drive import Drive
 from Echo import Echo
 
 path = '/tmp/robot'
-count = 0
+cnum = 0
+cmax = 0
 
 class CtrlProtocol(asyncio.Protocol):
     
@@ -22,10 +23,12 @@ class CtrlProtocol(asyncio.Protocol):
         self.bot.logMsg("CtrlClient [%d] %s" % (self.id, msg))
         
     def connection_made(self, transport):
-        global count
-        count = count + 1
+        global cnum
+        global cmax
+        cnum = cnum + 1
+        cmax = cmax + 1
         self.transport = transport
-        self.id = count
+        self.id = cmax
         self.logMsg("Connected")
         self.bot.drive.setSpeedFactor(1)
         
@@ -35,14 +38,16 @@ class CtrlProtocol(asyncio.Protocol):
             args = line.split()
             if len(args)>0:
                 self.logMsg(args)
-                ret = self.ctrl.handleCmd(args)
+                ret = self.bot.ctrlCmd(args)
                 if ret:
                     self.logMsg(ret)
                     self.transport.write(("%s\n"%(str(ret))).encode())
         
     def eof_received(self):
+        global cnum
+        cnum = cnum - 1
         self.logMsg("Disconnected")
-        self.bot.drive.stop()
+        if cnum == 0: self.bot.drive.stop()
 
 class CtrlServer:
     
@@ -53,21 +58,3 @@ class CtrlServer:
             lambda: CtrlProtocol(self, bot), path=path)
         self.server = loop.run_until_complete(c)
         self.bot.logMsg("CtrlServer listening on %s" % (path))
-
-    def handleCmd(self, args):
-        cmd = args[0]
-        if cmd == 'setDrive':
-            speed = float(args[1])
-            angle = float(args[2])
-            self.bot.drive.setDrive(speed,angle)
-
-        elif cmd == 'getEcho':
-            sensor = args[1]
-            if sensor == 'C':
-                return self.bot.echo.getDistance(Echo.ECHO_CENTRE)
-            elif sensor == 'L':
-                return self.bot.echo.getDistance(Echo.ECHO_LEFT)
-            elif sensor == 'R':
-                return self.bot.echo.getDistance(Echo.ECHO_RIGHT)
-            else:
-                return 0

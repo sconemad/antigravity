@@ -93,6 +93,9 @@ class AntiGravity(Bot, JSCallback):
     def get_camera(self):
         return self.camera
 
+    def quit(self):
+        self.loop.stop()
+    
     def pause(self,timeSec):
         "Pause, with logging"
         self.logMsg(" --- Pausing for %d seconds ---" % int(timeSec))
@@ -137,4 +140,16 @@ class AntiGravity(Bot, JSCallback):
         if (b == "y"): # AKA triangle
             self.logMsg("Selecting next module:" + self.next_module())
         if (b == 'select'):
-            self.loop.stop()
+            self.quit()
+
+    def ctrlCmd(self, args):
+        cmd = args[0]
+        del args[0]
+        if cmd == 'drive':
+            return self.drive.ctrlCmd(args)
+        elif cmd == 'echo':
+            return self.echo.ctrlCmd(args)
+        elif cmd == 'quit':
+            self.quit()
+        elif cmd == 'nextModule':
+            return self.next_module()
