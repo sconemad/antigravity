@@ -354,7 +354,7 @@ void Robot3::initiate(Environment* env)
   wid = 245;
   env->setRobotDimensions(static_cast<int>(len), static_cast<int>(wid));
 
-  sensors.push_back(Sensor(1, -wid / 4.0, len / 2.0 + 33.0, Angle(-pi / 4.0), 40.0));
-  sensors.push_back(Sensor(2, 0.0, len / 2.0 + 55.0, Angle(0.0), 30.0));
-  sensors.push_back(Sensor(3, wid / 4.0, len / 2.0 + 33.0, Angle(pi / 4.0), 40.0));
+  sensors.push_back(Sensor(1, -wid / 4.0, len / 2.0 + 33.0, Angle(-pi / 4.0), 60.0));
+  sensors.push_back(Sensor(2, 0.0, len / 2.0 + 55.0, Angle(0.0), 50.0));
+  sensors.push_back(Sensor(3, wid / 4.0, len / 2.0 + 33.0, Angle(pi / 4.0), 60.0));
 }

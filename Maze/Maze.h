@@ -187,9 +187,9 @@ public:
   double getDistance(const Sensor& s) override
   { 
     switch (s.Num()) {
-      case 0: return comms.getDistance(Comms::ECHO_LEFT);
-      case 1: return comms.getDistance(Comms::ECHO_CENTRE);
-      case 2: return comms.getDistance(Comms::ECHO_RIGHT);
+      case 1: return comms.getDistance(Comms::ECHO_LEFT);
+      case 2: return comms.getDistance(Comms::ECHO_CENTRE);
+      case 3: return comms.getDistance(Comms::ECHO_RIGHT);
     }
   }
 
