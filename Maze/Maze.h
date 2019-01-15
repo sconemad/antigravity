@@ -177,14 +177,23 @@ public:
   // speed from 0.0 - 1.0, max speed is about 1100 mm/sec
   // arguments are in mm/sec too
   void setSpeed(double left, double right) override
-  { comms.setSpeed(left/1100.0, right/1100.0); }
+  { 
+    comms.setSpeed(left/1100.0, right/1100.0);
+  }
 
   void setRobotDimensions(int len, int wid) override
   {}
 
   double getDistance(const Sensor& s) override
-  { return comms.getDistance(Comms::ECHO_CENTRE); }
+  { 
+    switch (s.Num()) {
+      case 0: return comms.getDistance(Comms::ECHO_LEFT);
+      case 1: return comms.getDistance(Comms::ECHO_CENTRE);
+      case 2: return comms.getDistance(Comms::ECHO_RIGHT);
+    }
+  }
 
+private:
   Comms comms;
 };
 
