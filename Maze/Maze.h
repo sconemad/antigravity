@@ -178,7 +178,7 @@ public:
   // arguments are in mm/sec too
   void setSpeed(double left, double right) override
   { 
-    comms.setSpeed(left/1100.0, right/1100.0);
+    comms.setSpeed(left, right);
   }
 
   void setRobotDimensions(int len, int wid) override
