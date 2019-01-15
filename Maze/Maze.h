@@ -2,6 +2,7 @@
 #define _PI_WARS_MAZE_H_
 
 #include "Utils.h"
+#include "Comms.h"
 #include <vector>
 #include <iostream>
 #include <mutex>
@@ -131,28 +132,28 @@ public:
 class Maze1 : public Simulation
 {
 public:
-  Maze1::Maze1();
+  Maze1();
 };
 
 // Maze with vertical zigzags
 class Maze2 : public Simulation
 {
 public:
-  Maze2::Maze2();
+  Maze2();
 };
 
 // Maze with horizontal zigzags
 class Maze3 : public Simulation
 {
 public:
-  Maze3::Maze3();
+  Maze3();
 };
 
 // Maze with open space
 class Maze4 : public Simulation
 {
 public:
-  Maze4::Maze4();
+  Maze4();
 };
 
 class MarsMaze : public Simulation
@@ -176,22 +177,15 @@ public:
   // speed from 0.0 - 1.0, max speed is about 1100 mm/sec
   // arguments are in mm/sec too
   void setSpeed(double left, double right) override
-  {
-    const double l = left / 1100.0;
-    const double r = right / 1100.0;
+  { comms.setSpeed(left/1100.0, right/1100.0); }
 
-    //std::cout << "ls" << l << std::endl;
-    //std::cout << "rs" << r << std::endl;
-  }
+  void setRobotDimensions(int len, int wid) override
+  {}
 
-  // distance returned is in mm, robot returns cm
   double getDistance(const Sensor& s) override
-  {
-    std::cout << "gd" << std::endl;
-    double distance = 0;
-    std::cin >> distance;
-    return distance * 10.0;
-  }
+  { return comms.getDistance(Comms::ECHO_CENTRE); }
+
+  Comms comms;
 };
 
 #endif

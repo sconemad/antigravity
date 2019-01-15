@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 #include <vector>
+#include <stdexcept>
 
 constexpr double PI = 3.14159265359;
 
@@ -236,7 +237,7 @@ class Sensor {
   double mindist;
 
 public:
-  Sensor::Sensor(int n, double x, double y, Angle a, double md = 50.0) :
+  Sensor(int n, double x, double y, Angle a, double md = 50.0) :
     num(n),
     MoveAngle(atan2(x, y)),
     MoveDist(sqrt(x*x + y*y)),

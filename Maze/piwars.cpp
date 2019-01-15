@@ -5,8 +5,8 @@
 int main(int argc, char* argv[])
 {
   //MarsMaze M;
-  Maze2 M;
-  // Reality M;
+  //Maze2 M;
+  Reality M;
   Robot3 R(&M);
 
   R.initiate(&M);

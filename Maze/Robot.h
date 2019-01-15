@@ -67,7 +67,7 @@ protected:
   std::vector< Sensor > sensors;
 
   std::thread workerThread;
-  std::atomic_bool cancelThread = false;
+  std::atomic_bool cancelThread = {false};
 
   Point lastDropLeft;
   Point lastDropRight;
