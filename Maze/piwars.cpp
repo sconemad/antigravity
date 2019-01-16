@@ -10,7 +10,6 @@ int main(int argc, char* argv[])
   Robot3 R(&M);
 
   R.initiate(&M);
-  const Pos initialrobot = M.GetRobotPos();
   R.SetMaxSpeed(3);  // mm/s
   R.AdjustSpeed(Angle(0.0));
 

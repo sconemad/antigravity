@@ -28,14 +28,14 @@ protected:
   };
 
   mutable std::mutex obstacleMutex;
-  std::vector< Obstacle > obstacles;
-  std::vector< Obstacle > drobstacles;
+  std::vector< Obstacle > obstacles;    // Created by distance measurements
+  std::vector< Obstacle > drobstacles;  // Created by dropping an obstacles behind the robot
 
   double getHeight(const Point p) const
   {
     std::lock_guard<std::mutex> lg(obstacleMutex);
 
-    // Get nearest obstacle
+    // Get distance to nearest obstacle
     double nearest = std::numeric_limits<double>::max();
     for (const Obstacle& ob : obstacles) {
       nearest = std::min(nearest, ob.Distance(p));
@@ -67,7 +67,7 @@ protected:
   std::vector< Sensor > sensors;
 
   std::thread workerThread;
-  std::atomic_bool cancelThread = {false};
+  std::atomic_bool cancelThread {false};
 
   Point lastDropLeft;
   Point lastDropRight;

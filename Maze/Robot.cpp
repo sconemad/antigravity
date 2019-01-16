@@ -19,7 +19,7 @@ Robot::Robot(Environment* env) :
   const Obstacle ob(Point(0.0, 0.0));
   Point D(len / 2.0, wid / 2.0);
   safeminwalldist = ob.Value(D);
-  double mdist = std::min(wid, len) / 2.0;
+  const double mdist = std::min(wid, len) / 2.0;
   minwalldist = ob.Value(Point(0.0, mdist));
 }
 
@@ -63,7 +63,7 @@ void Robot::threadFunction(Environment* env)
     for (auto& s : sensors) {
       if (cancelThread) return;
 
-      TimePoint tm = Clock::now();
+      const TimePoint tm = Clock::now();
       auto d = tm - time;
       double musec = (double)std::chrono::duration_cast<std::chrono::microseconds>(d).count();
       time = tm;
@@ -71,7 +71,7 @@ void Robot::threadFunction(Environment* env)
       Move(env, musec);      // Move robot in internal representation
       env->MoveRobot(musec); // Move robot in simulation, if relevant
 
-      const double distance = env->getDistance(s);  // Sleeps!!
+      const double distance = env->getDistance(s);  // Sleeps in sim!!
 
       if (distance > 0.0) {
         if (distance < s.getMinDist()) {
@@ -98,9 +98,9 @@ void Robot::threadFunction(Environment* env)
         }
 
         // Wait, to prevent next measurement to respond to last one's sound
-        // We assume we need to wait for sound to travel at least 2 meters
+        // We assume we need to wait for sound to travel at least 3 meters
         // but we can subtract the distance it has already travelled
-        const double dist = 2000 - 2.0 * distance;
+        const double dist = 3000 - 2.0 * distance;
         if (dist > 0.0) {
           const unsigned int m = 1000 * toint(dist) / 343;
           std::this_thread::sleep_for(std::chrono::microseconds(m));
@@ -262,7 +262,7 @@ void Robot::Correct(Environment* env)
 
   std::cout << totalnodes << " nodes, " << nodes << " visited";
 
-  // Trace path back to robot
+  // Trace path back to robot, for visualisation
   plotpath.clear();
 
   short px = BestDestinationNode.px;

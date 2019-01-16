@@ -64,7 +64,7 @@ bool Simulation::SetPixel(int x, int y, int w, bool h, bool detect)
 
 bool Simulation::Line(int x1, int y1, int x2, int y2, int thick, bool detect)
 {
-  const bool steep = fabs(y2 - y1) > fabs(x2 - x1);
+  const bool steep = abs(y2 - y1) > abs(x2 - x1);
 
   if (x1 != x2 && y1 != y2) {
     thick = static_cast<int>(thick * 1.4);
@@ -156,12 +156,7 @@ void Simulation::MoveRobot(double musec)
 }
 
 void Simulation::setSpeed(double left, double right)
-{/*
-  static std::random_device gen;
-  static std::mt19937 mt(gen());
-  static std::normal_distribution<double> normdistx(0.2, 0.3);
-  static std::normal_distribution<double> normdisty(-0.2, 0.3);
-*/
+{
   std::lock_guard<std::mutex> g(speedMutex);
   speedl = left;
   speedr = right;

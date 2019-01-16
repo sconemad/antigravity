@@ -6,6 +6,7 @@
 #include <sys/un.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdio.h>
 
 class Comms
 {
@@ -16,16 +17,17 @@ public:
     struct sockaddr_un addr;
     memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, SOCKET, sizeof(addr.sun_path)-1);
+    strncpy(addr.sun_path, SOCKET, sizeof(addr.sun_path) - 1);
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (connect(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-      close(fd); fd = -1;
+      close(fd);
+      fd = -1;
     }
   }
 
   ~Comms()
   {
-    if (fd>=0) close(fd);
+    if (fd >= 0) close(fd);
   }
 
   void setSpeed(double left, double right)
@@ -42,11 +44,10 @@ public:
     send(fd, msg, strlen(msg), 0);
     
     int n = recv(fd, msg, 256, 0);
-    int d = 0;
     if (n > 0) {
       msg[n] = '\0';
-      sscanf(msg, "%d\n", &d);
-      return d;
+      int d = 0;
+      if (sscanf(msg, "%d\n", &d) == 1) return d;
     }
     return 0;
   }
@@ -55,7 +56,7 @@ public:
   static const char ECHO_LEFT = 'L';
   static const char ECHO_RIGHT = 'R';
   
-  int fd;
+  int fd = -1;
 };
 
 #endif

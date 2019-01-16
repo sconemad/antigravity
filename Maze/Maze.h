@@ -32,8 +32,6 @@ public:
   virtual void setRobotDimensions(int len, int wid) = 0;
   double getRobotWidth()  const { return robotWidth; }
   double getRobotLength() const { return robotLen; }
-  virtual int getNumberOfSensors() const { return 0; }
-  virtual double getMaxSpeed() const { return 0.0; }
   virtual void setSpeed(double left, double right) = 0;
 
   Angle getInitialAngle() const { return Angle(0.0); }
@@ -190,6 +188,7 @@ public:
       case 1: return comms.getDistance(Comms::ECHO_LEFT);
       case 2: return comms.getDistance(Comms::ECHO_CENTRE);
       case 3: return comms.getDistance(Comms::ECHO_RIGHT);
+      default: return -1.0;
     }
   }
 
