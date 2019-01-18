@@ -10,7 +10,8 @@ int main(int argc, char* argv[])
   Robot3 R(&M);
 
   R.initiate(&M);
-  R.SetMaxSpeed(3);  // mm/s
+  R.SetMaxSpeed(49);  // mm/s
+  M.setMaxSpeed(49);
   R.AdjustSpeed(Angle(0.0));
 
   try {

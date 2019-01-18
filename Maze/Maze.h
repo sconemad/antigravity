@@ -17,6 +17,8 @@ protected:
   mutable std::mutex posMutex;
   Pos RobotPos;
 
+  double maxSpeed = 1.0;
+
 public:
   Environment() : RobotPos(0.0, 0.0, 0.0) {}
 
@@ -28,6 +30,8 @@ public:
     std::lock_guard<std::mutex> lg(posMutex);
     RobotPos = P;
   }
+
+  void setMaxSpeed(double ms) { maxSpeed = ms; }
 
   virtual void setRobotDimensions(int len, int wid) = 0;
   double getRobotWidth()  const { return robotWidth; }
@@ -176,7 +180,7 @@ public:
   // arguments are in mm/sec too
   void setSpeed(double left, double right) override
   { 
-    comms.setSpeed(left, right);
+    comms.setSpeed(left / maxSpeed, right / maxSpeed);
   }
 
   void setRobotDimensions(int len, int wid) override
@@ -191,6 +195,8 @@ public:
       default: return -1.0;
     }
   }
+  // Write result of run to bmp file
+  void write(std::string filename, const std::vector<Point>& pvec) override;
 
 private:
   Comms comms;

@@ -271,6 +271,44 @@ void Simulation::write(std::string filename, const std::vector<Point>& pvec)
   generateBitmapImage(area, area.at(0).size(), area.size(), filename.c_str());
 }
 
+void Reality::write(std::string filename, const std::vector<Point>& pvec)
+{
+  int minx = 0, maxx = 0, miny = 0, maxy = 0;
+
+  // Get range of obstacles
+  for (auto ob : pvec) {
+    minx = std::min(minx, (int)ob.x());
+    maxx = std::max(maxx, (int)ob.x());
+    miny = std::min(miny, (int)ob.y());
+    maxy = std::max(maxy, (int)ob.y());
+  }
+
+  std::vector< std::vector < bool > > area(maxx - minx + 100, std::vector < bool >(maxy - miny + 100));
+
+  // Write obstacles
+  for (auto ob : pvec) {
+    const int x = toint(ob.x()) - minx + 50;
+    const int y = toint(ob.y()) - miny + 50;
+
+    for (int xx = x - 2; xx < x + 3; ++xx)
+    {
+      if (xx >= 0 && xx < (int)area.size()) {
+        for (int yy = y - 2; yy < y + 3; ++yy)
+        {
+          if (yy >= 0 && yy < (int)area[x].size()) {
+            try {
+              area[xx][yy] = !area[xx][yy];
+            } catch (...) {}
+          }
+        }
+      }
+    }
+  }
+
+  generateBitmapImage(area, area.at(0).size(), area.size(), filename.c_str());
+}
+
+
 //////////////////////////  Maze1 2018 maze  ////////////////////////
 
 Maze1::Maze1() : Simulation(2440, 1220)
