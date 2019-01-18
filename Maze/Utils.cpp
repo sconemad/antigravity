@@ -83,8 +83,8 @@ void generateBitmapImage(const std::vector< std::vector<bool> >& image,
       } else {
         fwrite(white, 1, 3, imageFile);
       }
-      fwrite(padding, 1, paddingSize, imageFile);
     }
+    fwrite(padding, 1, paddingSize, imageFile);
   }
 
   fclose(imageFile);
