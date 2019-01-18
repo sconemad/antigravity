@@ -1,1 +1,1 @@
-g++ -o3 -std=c++11 -o Maze maze.cpp piwars.cpp Robot.cpp Utils.cpp -I .
+g++ -o3 -std=c++11 -lpthread -o Maze maze.cpp piwars.cpp Robot.cpp Utils.cpp -I .
