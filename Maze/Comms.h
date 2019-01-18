@@ -33,7 +33,7 @@ public:
   void setSpeed(double left, double right)
   {
     char msg[256];
-    sprintf(msg, "drive set %f %f\n", left, right); 
+    sprintf(msg, "drive setLR %f %f\n", left, right); 
     send(fd, msg, strlen(msg), 0);
   }
   

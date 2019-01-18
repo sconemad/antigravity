@@ -32,7 +32,13 @@ class Drive :
     def update(self):
         "Update motors with the current drive settings"
 
-        # Calculate left and right motor speeds
+        # Direct mode lets you set the motor speeds directly
+        if self.direct:
+            self.bot.logMsg('Drive: %.3f %.3f [direct]' % (self.ls, self.rs))
+            self.updateMotorSpeeds()
+            return
+        
+        # Calculate left and right motor speeds from speed and angle
         speed = self.speed / self.speedFactor
         ls = 0.0
         rs = 0.0
@@ -91,27 +97,38 @@ class Drive :
 
     def setSpeed(self, speed):
         self.speed = speed
+        self.direct = 0
         self.update()
 
     def setAngle(self, angle):
         self.angle = angle
+        self.direct = 0
         self.update()
 
     def setDrive(self, speed, angle):
         self.speed = speed
         self.angle = angle
+        self.direct = 0
         self.update()
         
     def setDriveXY(self, x, y):
         self.speed = math.sqrt(x*x + y*y)
         self.angle = math.atan2(x, y)
+        self.direct = 0
         self.update()
     
     def stop(self):
         self.speed = 0.0
         self.angle = 0.0
+        self.direct = 0
         self.update()
 
+    def setDriveLR(self, ls, rs):
+        self.ls = ls
+        self.rs = rs
+        self.direct = 1
+        self.update()
+    
     def setSpeedFactor(self, speedFactor):
         self.speedFactor = speedFactor
         self.update()
@@ -137,6 +154,7 @@ class Drive :
         
     def setFlip(self, flip):
         self.flip = flip
+        self.update()
         
     def getMotorCurrent(self):
         c = self.md25.readCurrents()
@@ -147,12 +165,31 @@ class Drive :
 
     def ctrlCmd(self, args):
         cmd = args[0]
-        if cmd == 'set':
+        if cmd == 'stop': # stop
+            self.stop()
+        if cmd == 'setLR': # setLR <lspeed> <rspeed>
+            ls = float(args[1])
+            rs = float(args[2])
+            self.setDriveLR(ls,rs)
+        elif cmd == 'set': # set <speed> <angle>
             speed = float(args[1])
             angle = float(args[2])
             self.setDrive(speed,angle)
+        elif cmd == 'setSpeed': # setSpeed <speed>
+            speed = float(args[1])
+            self.setSpeed(speed)
+        elif cmd == 'setAngle': # setAngle <angle>
+            angle = float(args[1])
+            self.setAngle(angle)
+        elif cmd == 'setSpeedFactor': # setSpeedFactor <factor>
+            sf = int(args[1])
+            self.setSpeedFactor(sf)
+        elif cmd == 'setFlip': # setFlip <0|1>
+            flip = int(args[1])
+            self.setFlip(flip)
     
     speedFactor = 1
     speed = 0.0
     angle = 0.0
     flip = 0
+    direct = 0
