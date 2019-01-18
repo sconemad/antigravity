@@ -73,46 +73,16 @@ void generateBitmapImage(const std::vector< std::vector<bool> >& image,
   fwrite(fileHeader, 1, fileHeaderSize, imageFile);
   fwrite(infoHeader, 1, infoHeaderSize, imageFile);
 
-  const unsigned char white[] = { 255, 255, 255 };
+  const unsigned char white[] = { 250, 250, 250 };
   const unsigned char black[] = { 12, 12, 12 };
 
   for (int h = 0; h < height; ++h) {
     for (int w = 0; w < width; ++w) {
-      if (image[w][h]) {
+      if (image.at(w).at(h)) {
         fwrite(black, 1, 3, imageFile);
       } else {
         fwrite(white, 1, 3, imageFile);
       }
-      fwrite(padding, 1, paddingSize, imageFile);
-    }
-  }
-
-  fclose(imageFile);
-}
-
-void generateBitmapImage(const std::vector< std::vector<char> >& image,
-                         int height, int width, const char* imageFileName)
-{
-  unsigned char* fileHeader = createBitmapFileHeader(height, width);
-  unsigned char* infoHeader = createBitmapInfoHeader(height, width);
-  unsigned char padding[3] = { 0, 0, 0 };
-  int paddingSize = (4 - (width*bytesPerPixel) % 4) % 4;
-
-  FILE* imageFile = nullptr;
-  fopen_s(&imageFile, imageFileName, "wb");
-
-  fwrite(fileHeader, 1, fileHeaderSize, imageFile);
-  fwrite(infoHeader, 1, infoHeaderSize, imageFile);
-
-  unsigned char clr[] = { 64, 64, 64 };
-
-  for (int h = 0; h < height; ++h) {
-    for (int w = 0; w < width; ++w) {
-      const unsigned char v = image[w][h];
-      clr[0] = v;
-      clr[1] = v;
-      clr[2] = v;
-      fwrite(clr, 1, 3, imageFile);
       fwrite(padding, 1, paddingSize, imageFile);
     }
   }
