@@ -2,7 +2,9 @@
 #define _PI_WARS_MAZE_H_
 
 #include "Utils.h"
+#ifndef WIN32
 #include "Comms.h"
+#endif
 #include <vector>
 #include <iostream>
 #include <mutex>
@@ -173,6 +175,7 @@ public:
   }
 };
 
+#ifndef WIN32
 class Reality : public Environment
 {
 public:
@@ -201,5 +204,6 @@ public:
 private:
   Comms comms;
 };
+#endif
 
 #endif

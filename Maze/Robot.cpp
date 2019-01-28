@@ -81,29 +81,33 @@ void Robot::threadFunction(Environment* env)
           return;
         }
 
+        if (distance > 1000.0) continue;
+
         // Get location of sensor
         Pos p = getRobotPos();
         s.Process(p);
         // Get location of hit
         p.Move(s.getAngle(), distance);
 
-        // Only add obstacle if it's not too far away
-        // and not too close to the last one
-        const double DistToLast = s.DistanceToLast(p);
-
-        if (DistToLast > 15.0 && distance < 10000.0) {
+        // Only add obstacle if it's not too close to the last one
+        if (s.DistanceToLast(p) > 15.0) {
           s.SetLast(p);
           std::lock_guard<std::mutex> lg(obstacleMutex);
           obstacles.push_back(Obstacle(p));
         }
 
-        // Wait, to prevent next measurement to respond to last one's sound
-        // We assume we need to wait for sound to travel at least 3 meters
-        // but we can subtract the distance it has already travelled
-        const double dist = 3000 - 2.0 * distance;
-        if (dist > 0.0) {
-          const unsigned int m = 1000 * toint(dist) / 343;
-          std::this_thread::sleep_for(std::chrono::microseconds(m));
+        if (s.getUltraSound()) {
+          // Wait, to prevent next measurement to respond to last one's sound
+          // We assume we need to wait for sound to travel at least 3 meters
+          // but we can subtract the distance it has already travelled
+          const double dist = 3000 - 2.0 * distance;
+          if (dist > 0.0) {
+            const unsigned int m = 1000 * toint(dist) / 343;
+            std::this_thread::sleep_for(std::chrono::microseconds(m));
+          }
+        }
+        else {
+          std::this_thread::sleep_for(std::chrono::milliseconds(20));
         }
       }
     }
