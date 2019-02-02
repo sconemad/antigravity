@@ -25,7 +25,7 @@ class Echo:
         self.bot = bot
         self.maxDist = 1000
         GPIO.setwarnings(False)
-        GPIO.setmode(GPIO.BOARD)
+#        GPIO.setmode(GPIO.BOARD)
 
     def __del__(self):
         GPIO.cleanup()
@@ -68,5 +68,7 @@ class Echo:
                 return self.getDistance(Echo.ECHO_LEFT)
             elif sensor == 'R':
                 return self.getDistance(Echo.ECHO_RIGHT)
+            elif sensor == 'P':
+                return self.getDistance(38)
             else:
                 return 0

@@ -15,6 +15,7 @@ import math
 
 path = '/tmp/robot'
 client = 0
+angle = 90
 
 class CtrlClient(asyncio.Protocol) :
     def connection_made(self, transport):
@@ -38,9 +39,21 @@ class CtrlClient(asyncio.Protocol) :
     def setDrive(self, speed, angle):
         self.transport.write(("drive set %f %f" % (speed, angle)).encode())
 
-    def getEcho(self, sensor):
-        self.transport.write(("echo get %s" % (sensor)).encode())
+    def setDriveLR(self, ls, rs):
+        self.transport.write(("drive setLR %f %f" % (ls, rs)).encode())
 
+    def getDist(self, sensor):
+        self.transport.write(("dist get %s" % (sensor)).encode())
+
+    def getVoltage(self):
+        self.transport.write(("drive getVoltage").encode())
+
+    def getCurrent(self):
+        self.transport.write(("drive getCurrent").encode())
+
+    def setServo(self, servo, angle):
+        self.transport.write(("servo set %d %d" % (servo, angle)).encode())
+        
 def reconnect():
     loop = asyncio.get_event_loop()
     a = loop.create_unix_connection(CtrlClient, path=path)
@@ -55,29 +68,48 @@ def readkeys():
     return ch_set;
         
 def stdinEvent():
+    global angle
     k = readkeys()
     if client==0:
         reconnect()
         return
     if len(k)==1: # Normal keys
         if chr(k[0])==' ':
-            client.setDrive(0,0)
+            client.setDriveLR(0,0)
         elif chr(k[0])=='1':
-            client.getEcho('L')
+            client.getDist('L')
         elif chr(k[0])=='2':
-            client.getEcho('C')
+            client.getDist('C')
         elif chr(k[0])=='3':
-            client.getEcho('R')
-            
+            client.getDist('R')
+
+        elif chr(k[0])=='v':
+            client.getVoltage()
+        elif chr(k[0])=='c':
+            client.getCurrent()
+
+        elif chr(k[0])==']':
+            angle = angle + 10
+            if angle > 180: angle = 180
+            client.setServo(0, angle)
+        elif chr(k[0])=='[':
+            angle = angle - 10
+            if angle < 0: angle = 0
+            client.setServo(0, angle)
+
     elif len(k)==3 and k[0]==27 and k[1]==91:
         if k[2]==65: # up
-            client.setDrive(1, 0)
+            #client.setDrive(1, 0)
+            client.setDriveLR(-0.5, -0.5)
         if k[2]==66: # down
-            client.setDrive(1, math.pi)
+            #client.setDrive(1, math.pi)
+            client.setDriveLR(0.5, 0.5)
         if k[2]==68: # left
-            client.setDrive(1, math.pi/2)
+            #client.setDrive(1, math.pi/2)
+            client.setDriveLR(0.2, -0.5)
         if k[2]==67: # right
-            client.setDrive(1, -math.pi/2)
+            #client.setDrive(1, -math.pi/2)
+            client.setDriveLR(-0.5, 0.2)
 
 try:
     print("AntiGravity robot control client")

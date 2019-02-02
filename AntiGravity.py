@@ -17,6 +17,8 @@ from Drive import Drive
 from DriveMD25 import DriveMD25
 from DrivePiconZero import DrivePiconZero
 from Echo import Echo
+from Lidar import Lidar
+from Servo import Servo
 from CtrlServer import CtrlServer
 from JS import JS, JSCallback
 from Camera import Camera
@@ -49,7 +51,9 @@ class AntiGravity(Bot, JSCallback):
         if self.drive == 0: self.drive == Drive(self)
         self.logMsg("Drive: %s" % (type(self.drive).__name__))
 
-        self.echo = Echo(self)
+        #self.dist = Echo(self)
+        self.dist = Lidar(self)
+        self.servo = Servo(self)
         self.ctrlServer = CtrlServer(self)
         self.turtle = Turtle(self)
         self.js = JS(self)
@@ -71,7 +75,8 @@ class AntiGravity(Bot, JSCallback):
         # Used by Turtle, Calibrate etc - global store so calibrate can update
         self.turnCorrectionFactor=0.915
         self.distCorrectionFactor=1
-
+        self.batTimer([])
+        
     def __del__(self):
         self.logfile.close()
         
@@ -104,6 +109,11 @@ class AntiGravity(Bot, JSCallback):
     def setTimer(self, t, cb):
         self.loop.call_later(t, cb, [])
 
+    def batTimer(self, args):
+        v = self.drive.getBatteryVoltage()
+        self.logMsg("Battery voltate: %0.1fv" % (v))
+        self.setTimer(10, self.batTimer)
+        
     def leftStick(self, x, y):
         "Notification of a gamepad left analog stick event"
         self.logMsg('LEFT_STICK: %.3f %.3f' % (x, y))
@@ -147,8 +157,10 @@ class AntiGravity(Bot, JSCallback):
         del args[0]
         if cmd == 'drive':
             return self.drive.ctrlCmd(args)
-        elif cmd == 'echo':
-            return self.echo.ctrlCmd(args)
+        elif cmd == 'dist':
+            return self.dist.ctrlCmd(args)
+        elif cmd == 'servo':
+            return self.servo.ctrlCmd(args)
         elif cmd == 'quit':
             self.quit()
         elif cmd == 'nextModule':

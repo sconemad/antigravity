@@ -24,7 +24,7 @@ class JSCallback :
 class JS :
     def __init__(self, cb):
         self.cb = cb
-        devs = glob.glob("/dev/input/by-id/*-joystick")
+        devs = glob.glob("/dev/input/by-id/*-X-joystick")
         if len(devs) == 0:
             print('JS: No joystick detected')
             return
@@ -76,14 +76,16 @@ class JS :
         loop = asyncio.get_event_loop()
         loop.add_reader(self.fd, self.event)
 
-    def event(self, f, m):
+    def event(self):
         while True:
-            try: evbuf = f.read(8)
+            try: evbuf = self.fd.read(8)
             except: return
-            if (evbuf == 0): return
-            
-            time, value, type, number = struct.unpack('IhBB', evbuf)
+            if (evbuf == None): return
 
+            try:
+                time, value, type, number = struct.unpack('IhBB', evbuf)
+            except: pass
+            
             if type & 0x80:
                 # Let's not send initial states to the callbacks
                 return

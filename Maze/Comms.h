@@ -40,7 +40,7 @@ public:
   int getDistance(char sensor)
   {
     char msg[256];
-    sprintf(msg, "echo get %c\n", sensor);
+    sprintf(msg, "dist get %c\n", sensor);
     send(fd, msg, strlen(msg), 0);
     
     int n = recv(fd, msg, 256, 0);

@@ -30,7 +30,8 @@ class CtrlProtocol(asyncio.Protocol):
         self.transport = transport
         self.id = cmax
         self.logMsg("Connected")
-        self.bot.drive.setSpeedFactor(1)
+        self.bot.drive.setSpeedFactor(8)
+        self.bot.drive.setFlip(1)
         
     def data_received(self, data):
         lines = data.decode().split('\n')
@@ -39,7 +40,7 @@ class CtrlProtocol(asyncio.Protocol):
             if len(args)>0:
                 self.logMsg(args)
                 ret = self.bot.ctrlCmd(args)
-                if ret:
+                if ret != None:
                     self.logMsg(ret)
                     self.transport.write(("%s\n"%(str(ret))).encode())
         
