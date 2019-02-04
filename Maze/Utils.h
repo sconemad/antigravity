@@ -145,9 +145,14 @@ public:
   void setx(double x) { m_x = x; }
   void sety(double y) { m_y = y; }
 
+  double SumOfSquares(const Point& other) const
+  {
+    return sq(m_x - other.m_x) + sq(m_y - other.m_y);
+  }
+
   double Distance(const Point& other) const
   {
-    return sqrt(sq(m_x - other.m_x) + sq(m_y - other.m_y));
+    return sqrt(SumOfSquares(other));
   }
 
   void Move(Angle ang, double len)

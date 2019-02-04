@@ -36,15 +36,15 @@ protected:
     std::lock_guard<std::mutex> lg(obstacleMutex);
 
     // Get distance to nearest obstacle
-    double nearest = std::numeric_limits<double>::max();
+    double nearestssq = std::numeric_limits<double>::max();
     for (const Obstacle& ob : obstacles) {
-      nearest = std::min(nearest, ob.Distance(p));
+      nearestssq = std::min(nearestssq, ob.SumOfSquares(p));
     }
     for (const Obstacle& ob : drobstacles) {
-      nearest = std::min(nearest, ob.Distance(p));
+      nearestssq = std::min(nearestssq, ob.SumOfSquares(p));
     }
 
-    return Obstacle::height(nearest);
+    return Obstacle::height(sqrt(nearestssq));
   }
 
   // Dimensions
