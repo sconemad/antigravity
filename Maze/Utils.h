@@ -31,12 +31,12 @@ public:
   const T& Get(std::size_t x, std::size_t y) const
   {
     if (x >= m_xsize || y >= m_ysize) throw std::out_of_range("Vector2D");
-    return m_Vec[x * m_xsize + y];
+    return m_Vec[x + y * m_xsize];
   }
   T& Get(std::size_t x, std::size_t y)
   {
     if (x >= m_xsize || y >= m_ysize) throw std::out_of_range("Vector2D");
-    return m_Vec[x * m_xsize + y];
+    return m_Vec[x + y * m_xsize];
   }
 };
 
