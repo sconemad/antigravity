@@ -232,7 +232,7 @@ bool Simulation::finished()
          !C.BL.CheckBoundary(width, height, 5.0);
 }
 
-void Simulation::write(std::string filename, const std::vector<Point>& pvec)/*
+void Simulation::write(std::string filename, const std::vector<Point>& pvec)
 {
   // Write outline of robot
   const Corners C = GetCorners(GetRobotPos());
@@ -273,7 +273,7 @@ void Simulation::write(std::string filename, const std::vector<Point>& pvec)/*
   generateBitmapImage(area, area.at(0).size(), area.size(), filename.c_str());
 }
 
-void Reality::write(std::string filename, const std::vector<Point>& pvec) */
+void Reality::write(std::string filename, const std::vector<Point>& pvec)
 {
   int minx = 0, maxx = 0, miny = 0, maxy = 0;
 
