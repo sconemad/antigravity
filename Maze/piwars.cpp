@@ -7,11 +7,11 @@ int main(int argc, char* argv[])
   //MarsMaze M;
   //Maze2 M;
   Reality M;
-  Robot3 R(&M);
+  Robot2 R(&M);
 
   R.initiate(&M);
-  R.SetMaxSpeed(49);  // mm/s
-  M.setMaxSpeed(49);
+  R.SetMaxSpeed(5);    // mm/s , speed limit
+  M.setMaxSpeed(49);   // mm/s , maximum speed possible
   R.AdjustSpeed(Angle(0.0));
 
   try {
