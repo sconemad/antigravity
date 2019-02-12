@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 
     R.start(&M);
 
-    while (++steps <= 10 && !R.Stopped() && !M.finished()) {
+    while (++steps <= 1000 && !R.Stopped() && !M.finished()) {
 
       if (M.crashed()) {
         std::cout << "Crash" << std::endl;

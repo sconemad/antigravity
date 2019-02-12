@@ -35,9 +35,12 @@ public:
 
   void setMaxSpeed(double ms) { maxSpeed = ms; }
 
-  virtual void setRobotDimensions(int len, int wid) = 0;
-  double getRobotWidth()  const { return robotWidth; }
-  double getRobotLength() const { return robotLen; }
+  virtual void setRobotDimensions(int len, int wid) {
+    robotLen = len;
+    robotWidth = wid;
+  }
+  int getRobotWidth()  const { return robotWidth; }
+  int getRobotLength() const { return robotLen; }
   virtual void setSpeed(double left, double right) = 0;
 
   Angle getInitialAngle() const { return Angle(0.0); }
@@ -106,8 +109,7 @@ public:
   Simulation(int w, int h);
 
   void setRobotDimensions(int len, int wid) override {
-    robotLen = len;
-    robotWidth = wid;
+    Environment::setRobotDimensions(len, wid);
     const double initialx = 35 + 200;       // middle of the road
     const double initialy = getRobotLength() / 2 + 10; // 1cm from bottom
     SetRobotPos(Pos(initialx, initialy, 0.0));
@@ -185,9 +187,6 @@ public:
   { 
     comms.setSpeed(left / maxSpeed, right / maxSpeed);
   }
-
-  void setRobotDimensions(int len, int wid) override
-  {}
 
   double getDistance(const Sensor& s) override
   { 

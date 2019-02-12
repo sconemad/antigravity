@@ -33,14 +33,14 @@ public:
   void setSpeed(double left, double right)
   {
     char msg[256];
-    sprintf(msg, "drive setLR %f %f\n", left, right); 
+    snprintf(msg, 256, "drive setLR %f %f\n", left, right); 
     send(fd, msg, strlen(msg), 0);
   }
   
   int getDistance(char sensor)
   {
     char msg[256];
-    sprintf(msg, "dist get %c\n", sensor);
+    snprintf(msg, 256, "dist get %c\n", sensor);
     send(fd, msg, strlen(msg), 0);
     
     int n = recv(fd, msg, 256, 0);
