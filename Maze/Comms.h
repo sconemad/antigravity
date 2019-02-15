@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <mutex>
 
 class Comms
 {
@@ -32,6 +33,7 @@ public:
 
   void setSpeed(double left, double right)
   {
+    std::lock_guard<std::mutex> lg(mtx);
     char msg[256];
     snprintf(msg, 256, "drive setLR %f %f\n", left, right); 
     send(fd, msg, strlen(msg), 0);
@@ -39,6 +41,7 @@ public:
   
   int getDistance(char sensor)
   {
+    std::lock_guard<std::mutex> lg(mtx);
     char msg[256];
     snprintf(msg, 256, "dist get %c\n", sensor);
     send(fd, msg, strlen(msg), 0);
@@ -57,6 +60,7 @@ public:
   static const char ECHO_RIGHT = 'R';
   
   int fd = -1;
+  std::mutex mtx;
 };
 
 #endif

@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
   Robot2 R(&M);
 
   R.initiate(&M);
-  R.SetMaxSpeed(5);    // mm/s , speed limit
+  R.SetMaxSpeed(49);    // mm/s , speed limit
   M.setMaxSpeed(49);   // mm/s , maximum speed possible
   R.AdjustSpeed(Angle(0.0));
 
@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 
     R.start(&M);
 
-    while (++steps <= 1000 && !R.Stopped() && !M.finished()) {
+    while (++steps <= 10000 && !R.Stopped() && !M.finished()) {
 
       if (M.crashed()) {
         std::cout << "Crash" << std::endl;
