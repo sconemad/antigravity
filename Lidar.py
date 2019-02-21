@@ -16,59 +16,69 @@ class Lidar:
     # https://github.com/pololu/vl53l0x-arduino/blob/master/examples/Single/Single.ino
     MTB = 33000
 
-    # I2C addresses and XSHUT pins for VL53L0X modules:
     DIST_CENTRE = 1
-    DIST_CENTRE_ADDR = 0x29
-    DIST_CENTRE_XSHUT = 15
-
     DIST_LEFT = 2
-    DIST_LEFT_ADDR = 0x2a
-    DIST_LEFT_XSHUT = 14
-
     DIST_RIGHT = 3
-    DIST_RIGHT_ADDR = 0x2b
-    DIST_RIGHT_XSHUT = 18
 
+    I2C_MUX_ADDR = 0x72
+    I2C_MUX_LEFT = 5
+    I2C_MUX_RIGHT = 7
+    I2C_MUX_CENTRE = 6
+    
     def __init__(self, bot):
         self.bot = bot
         GPIO.setmode(GPIO.BCM)
         self.i2c = busio.I2C(board.SCL, board.SDA)
 
-        # Disable all sensors
-        self._disable(self.DIST_LEFT_XSHUT)
-        self._disable(self.DIST_RIGHT_XSHUT)
-        self._disable(self.DIST_CENTRE_XSHUT)
+        # Init the sensors
+        self._select(self.I2C_MUX_CENTRE)
+        self.vl53_centre = adafruit_vl53l0x.VL53L0X(self.i2c)
+        self.vl53_centre.measurement_timing_budget = self.MTB
 
-        # Enable and configure sensors one by one
-        self.left = self._setup(self.DIST_LEFT_XSHUT, self.DIST_LEFT_ADDR)
-        self.right = self._setup(self.DIST_RIGHT_XSHUT, self.DIST_RIGHT_ADDR)
-        self.centre = self._setup(self.DIST_CENTRE_XSHUT, self.DIST_CENTRE_ADDR)
-        
+        self._select(self.I2C_MUX_LEFT)
+        self.vl53_left = adafruit_vl53l0x.VL53L0X(self.i2c)
+        self.vl53_left.measurement_timing_budget = self.MTB
+
+        self._select(self.I2C_MUX_RIGHT)
+        self.vl53_right = adafruit_vl53l0x.VL53L0X(self.i2c)
+        self.vl53_right.measurement_timing_budget = self.MTB
+
+        self.distTimer([])
+
     def __del__(self):
         GPIO.cleanup()
 
-    def _enable(self, xshut):
-        GPIO.setup(xshut, GPIO.IN)
+    def _select(self, bus):
+        self.i2c.writeto(self.I2C_MUX_ADDR, bytearray([int(2**bus)]))
         time.sleep(0.1)
-            
-    def _disable(self, xshut):
-        GPIO.setup(xshut, GPIO.OUT)
-        GPIO.output(xshut, False)
 
-    def _setup(self, xshut, addr):
-        self._enable(xshut)
-        vl53 = adafruit_vl53l0x.VL53L0X(self.i2c)
-        vl53._write_u8(adafruit_vl53l0x._I2C_SLAVE_DEVICE_ADDRESS, addr)
-        vl53 = adafruit_vl53l0x.VL53L0X(self.i2c, addr)
-        vl53.measurement_timing_budget = self.MTB
-        return vl53
+    def getSensor(self, sensor):
+        if (sensor == self.DIST_LEFT):
+            self._select(self.I2C_MUX_LEFT)
+            return self.vl53_left
+        elif (sensor == self.DIST_RIGHT):
+            self._select(self.I2C_MUX_RIGHT)
+            return self.vl53_right
+        else:
+            self._select(self.I2C_MUX_CENTRE)
+            return self.vl53_centre
         
     def getDistance(self, sensor):
-        if sensor == self.DIST_LEFT: return self.left.range
-        if sensor == self.DIST_RIGHT: return self.right.range
-        if sensor == self.DIST_CENTRE: return self.centre.range
-        return 0
+        vl53 = self.getSensor(sensor)
+        r = 9999
+        try:
+            r = vl53.range
+        except:
+            self.bot.logMsg("Failed")
+        return r
 
+    def distTimer(self, args):
+        l = self.getDistance(self.DIST_LEFT)
+        c = self.getDistance(self.DIST_CENTRE)
+        r = self.getDistance(self.DIST_RIGHT)
+        self.bot.logMsg("Dist: %d %d %d" % (l,c,r))
+        self.bot.setTimer(10, self.distTimer)
+    
     def ctrlCmd(self, args):
         cmd = args[0]
         if cmd == 'get':

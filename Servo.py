@@ -12,6 +12,9 @@ class Servo:
         self.bot = bot
         self.kit = ServoKit(channels=16)
 
+    def setAngle(self, servo, angle):
+        self.kit.servo[servo].angle = angle
+        
     def ctrlCmd(self, args):
         cmd = args[0]
         if cmd == 'set':

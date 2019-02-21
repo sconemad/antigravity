@@ -9,8 +9,8 @@ class Dummy(threading.Thread):
 
         threading.Thread.__init__(self)
         self.robot = robot
-        self.camera = robot.get_camera() 
-        self.robot.drive.setSpeedFactor(5.0)
+#        self.camera = robot.get_camera() 
+#        self.robot.drive.setSpeedFactor(5.0)
         
 
     def run(self):

@@ -42,6 +42,9 @@ class CtrlClient(asyncio.Protocol) :
     def setDriveLR(self, ls, rs):
         self.transport.write(("drive setLR %f %f" % (ls, rs)).encode())
 
+    def halt(self):
+        self.transport.write(("drive halt").encode())
+
     def getDist(self, sensor):
         self.transport.write(("dist get %s" % (sensor)).encode())
 
@@ -76,6 +79,8 @@ def stdinEvent():
     if len(k)==1: # Normal keys
         if chr(k[0])==' ':
             client.setDriveLR(0,0)
+        if chr(k[0])=='/':
+            client.halt()
         elif chr(k[0])=='1':
             client.getDist('L')
         elif chr(k[0])=='2':
@@ -99,17 +104,13 @@ def stdinEvent():
 
     elif len(k)==3 and k[0]==27 and k[1]==91:
         if k[2]==65: # up
-            #client.setDrive(1, 0)
-            client.setDriveLR(-0.5, -0.5)
+            client.setDriveLR(1.0, 1.0)
         if k[2]==66: # down
-            #client.setDrive(1, math.pi)
-            client.setDriveLR(0.5, 0.5)
+            client.setDriveLR(-0.5, -0.5)
         if k[2]==68: # left
-            #client.setDrive(1, math.pi/2)
-            client.setDriveLR(0.2, -0.5)
+            client.setDriveLR(0.0, 0.5)
         if k[2]==67: # right
-            #client.setDrive(1, -math.pi/2)
-            client.setDriveLR(-0.5, 0.2)
+            client.setDriveLR(0.5, 0.0)
 
 try:
     print("AntiGravity robot control client")

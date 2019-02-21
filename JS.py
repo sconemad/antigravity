@@ -26,10 +26,10 @@ class JS :
         self.cb = cb
         devs = glob.glob("/dev/input/by-id/*-X-joystick")
         if len(devs) == 0:
-            print('JS: No joystick detected')
+            self.cb.logMsg('JS: No joystick detected')
             return
         dev = devs[0]
-        print('JS: Opening js %s...' % dev)
+        self.cb.logMsg('JS: Using %s...' % dev)
         self.fd = open(dev, 'rb')
 
         # Set the fd non-blocking
@@ -41,7 +41,7 @@ class JS :
         # JSIOCGNAME(len)
         fcntl.ioctl(self.fd, 0x80006a13 + (0x10000 * len(buf)), buf)
         js_name = buf.tostring()
-        print('JS: Device name: %s' % js_name)
+        #print('JS: Device name: %s' % js_name)
 
         # Get number of axes and buttons.
         buf = array.array('B', [0])
@@ -70,8 +70,8 @@ class JS :
             self.button_map.append(btn_name)
             self.button_states[btn_name] = 0
 
-        print('JS: %d axes found: %s' % (num_axes, ', '.join(self.axis_map)))
-        print('JS: %d buttons found: %s' % (num_buttons, ', '.join(self.button_map)))
+        #print('JS: %d axes found: %s' % (num_axes, ', '.join(self.axis_map)))
+        #print('JS: %d buttons found: %s' % (num_buttons, ', '.join(self.button_map)))
 
         loop = asyncio.get_event_loop()
         loop.add_reader(self.fd, self.event)

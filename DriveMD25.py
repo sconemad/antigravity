@@ -11,11 +11,17 @@ class DriveMD25(Drive):
 
     def __init__(self, bot):
         super().__init__(bot)
-        self.md25 = MD25(0x58,1)
+        self.md25 = MD25(0x59,1)
+#        self.md25 = MD25(0x58,1)
         self.md25.readBatteryVoltage()
             
-    def updateMotorSpeeds(self):
-        self.md25.turn(int(128+(127*self.rs)), int(128+(127*self.ls)))
+    def updateMotorSpeeds(self, ls, rs):
+        l = int(128+(127*-ls))
+        r = int(128+(127*-rs))
+        try:
+            self.md25.turn(l,r)
+        except:
+            self.bot.logMsg("Went wrong")
 
     def getMotorCurrent(self):
         c = self.md25.readCurrents()

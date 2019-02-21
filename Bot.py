@@ -20,3 +20,6 @@ class Bot:
         print(s)
         self.logfile.write(s)
         self.logfile.write("\n")
+
+    def setTimer(self, t, cb):
+        print("Not implemented")

@@ -8,54 +8,108 @@ import math
 
 from Bot import Bot
 
+# Update time period (s)
+T = 0.1
+
+# Straight (i.e. infinite turn radius)
+Straight = float('inf')
+
 class Drive :
 
     def __init__(self, bot):
         self.bot = bot
         self.ls = 0
         self.rs = 0
-        
-        # -tive makes go left when going forward eg -0.95
-        # 0 (or 1) turns off
-        # Factor / 1+/-delta; 0.95 => slow right motors by 5% to make move to right
-        self.biasCorrection = 1
-        self.biasCorrection = -0.99 # Still turns left going forward, but almost straight rev
-        self.biasCorrection = 1.0 #  Turns slightly to right, mostly, for 3,2,1 speeds 20-Apr-2018 speedtests
-        self.biasCorrection = -0.995 # At speed=1 is about 10 cm to right still over 7.2m
-        self.biasCorrection = -0.75 # At speed=1  # GAH =>-tive is RIGHT
-        self.biasCorrection = 0.75 # TEST!!!
-        self.biasCorrection = 1 # 
+        self.tls = 0
+        self.trs = 0
+        self.bot.loop.call_later(T, self.timer, [])
 
-    def updateMotorSpeeds(self):
+    def timer(self, f):
+        # Apply flip and speed factor settings to get target speeds
+        if self.flip:
+            tls = -self.trs / self.speedFactor
+            trs = -self.tls / self.speedFactor
+        else:
+            tls = self.tls / self.speedFactor
+            trs = self.trs / self.speedFactor
+        
+        # Save previous actual wheel speeds for comparison later
+        pls = self.ls
+        prs = self.rs
+
+        # Calculate current turn radius, tr
+        d = self.ls - self.rs
+        tr = Straight
+        if abs(d) > 0.01: tr = (self.ls + self.rs) / d
+
+        # Calculate current v, target v and acceleration required
+        v = self.ls + self.rs
+        tv = tls + trs
+        a = tv - v
+
+        # Limit deceleration to stop it falling over
+        dlim = 0.03
+        if a < -dlim: 
+            p = a / -dlim
+            print("Limiting decel %f" % (p))
+            self.ls = self.ls + (tls - self.ls) / p
+            self.rs = self.rs + (trs - self.rs) / p
+        else:
+            self.ls = tls
+            self.rs = trs
+
+        if self.ls > 1.0: self.ls = 1.0
+        elif self.ls < -1.0: self.ls = -1.0
+        if self.rs > 1.0: self.rs = 1.0
+        elif self.rs < -1.0: self.rs = -1.0
+            
+        if self.ls != pls or self.rs != prs:
+            self.bot.logMsg('Drive: %.3f %.3f (tr=%f acc=%f)' % (self.ls, self.rs, tr, a))
+        if self.ls != 0 or self.rs != 0 or pls != 0 or prs != 0:
+            self.updateMotorSpeeds(self.ls, self.rs)
+        self.bot.loop.call_later(T, self.timer, [])
+        
+    def updateMotorSpeeds(self, ls, rs):
         print('Drive: Not implemented')
 
-    def update(self):
-        "Update motors with the current drive settings"
-
-        # Direct mode lets you set the motor speeds directly
-        if self.direct:
-            self.bot.logMsg('Drive: %.3f %.3f [direct]' % (self.ls, self.rs))
-            self.updateMotorSpeeds()
-            return
+    def stop(self):
+        self.tls = 0.0
+        self.trs = 0.0
         
-        # Calculate left and right motor speeds from speed and angle
-        speed = self.speed / self.speedFactor
+    def halt(self):
+        'Emergency stop (ignores any acceleration control)'
+        self.tls = 0
+        self.trs = 0
+        self.ls = 0
+        self.rs = 0
+        self.updateMotorSpeeds(0,0)
+        
+    def setDriveLR(self, ls, rs):
+        'Set motor speeds directly'
+        self.tls = ls
+        self.trs = rs
+
+    def setDriveXY(self, x, y):
+        'Set motor speeds based on X/Y joystick position'
+        speed = math.sqrt(x*x + y*y)
+        angle = math.atan2(x, y)
+        
         ls = 0.0
         rs = 0.0
-        if (self.angle >= 0 and self.angle <= math.pi/2):
-            d = 1 - (4*self.angle/math.pi)
+        if (angle >= 0 and angle <= math.pi/2):
+            d = 1 - (4*angle/math.pi)
             ls = speed * d
             rs = speed
-        elif (self.angle <= 0 and self.angle >= -math.pi/2):
-            d = 1 + (4*self.angle/math.pi)
+        elif (angle <= 0 and angle >= -math.pi/2):
+            d = 1 + (4*angle/math.pi)
             ls = speed
             rs = speed * d
-        elif (self.angle > math.pi/2):
-            d = 1 + (4*((math.pi/2)-self.angle)/math.pi)
+        elif (angle > math.pi/2):
+            d = 1 + (4*((math.pi/2)-angle)/math.pi)
             rs = speed*d
             ls = -speed
-        elif (self.angle < -math.pi/2):
-            d = 5 - (4*((math.pi/2)-self.angle)/math.pi)
+        elif (angle < -math.pi/2):
+            d = 5 - (4*((math.pi/2)-angle)/math.pi)
             rs = -speed
             ls = speed * d
 
@@ -64,74 +118,12 @@ class Drive :
         if (ls < -1): ls = -1
         if (rs > 1): rs = 1
         if (rs < -1): rs = -1
-
-        if (self.flip):
-            tls = ls
-            ls = -rs
-            rs = -tls
-
-        ####################################
-        #
-        # Correct for slippage/motor bias
-        #
-        # +tive means we want to turn more to the:
-        #      - right when going forward (i.e reduce RHS motors)
-        # (i.e in a straight line without the bias we are turning left going forward and
-        #                                                         right when reversing,
-        #                                                         from POV of md25)
-        # -tive means we want to turn left when going forward (i.e. reduce LHS motors)
-        if self.biasCorrection:
-            if self.biasCorrection>0:
-                rs = rs * self.biasCorrection
-            else:
-                ls = ls * abs(self.biasCorrection) 
-        # NOTE: Flip=1 actually means go forward.  I think L/R are reversed by accident.
-        # so we have this in the "wrong" place after the flip reversal
-        # L/R in "abs" terms facing md25.  Even though md25 has fwd speeds -tive
-            
-        # Send to controllers
-        self.bot.logMsg('Drive: %.3f %.3f  [FLIP=%d BIAS=%1.3f]' % (ls, rs, self.flip, self.biasCorrection))
-        self.ls = ls
-        self.rs = rs
-        self.updateMotorSpeeds()
-
-    def setSpeed(self, speed):
-        self.speed = speed
-        self.direct = 0
-        self.update()
-
-    def setAngle(self, angle):
-        self.angle = angle
-        self.direct = 0
-        self.update()
-
-    def setDrive(self, speed, angle):
-        self.speed = speed
-        self.angle = angle
-        self.direct = 0
-        self.update()
         
-    def setDriveXY(self, x, y):
-        self.speed = math.sqrt(x*x + y*y)
-        self.angle = math.atan2(x, y)
-        self.direct = 0
-        self.update()
-    
-    def stop(self):
-        self.speed = 0.0
-        self.angle = 0.0
-        self.direct = 0
-        self.update()
-
-    def setDriveLR(self, ls, rs):
-        self.ls = ls
-        self.rs = rs
-        self.direct = 1
-        self.update()
+        self.tls = ls
+        self.trs = rs
     
     def setSpeedFactor(self, speedFactor):
         self.speedFactor = speedFactor
-        self.update()
 
     def incSpeedFactor(self):
         if (self.speedFactor < 5):
@@ -154,7 +146,6 @@ class Drive :
         
     def setFlip(self, flip):
         self.flip = flip
-        self.update()
         
     def getMotorCurrent(self):
         c = self.md25.readCurrents()
@@ -162,7 +153,7 @@ class Drive :
 
     def getBatteryVoltage(self):
         return self.md25.readBatteryVoltage()
-
+    
     def ctrlCmd(self, args):
         cmd = args[0]
         if cmd == 'stop': # stop
@@ -186,10 +177,12 @@ class Drive :
             self.setSpeedFactor(sf)
         elif cmd == 'setFlip': # setFlip <0|1>
             flip = int(args[1])
-            self.setFlip(flip)
-    
-    speedFactor = 1
-    speed = 0.0
-    angle = 0.0
-    flip = 0
-    direct = 0
+            if flip: self.setFlip(True)
+            else: self.setFlip(False)
+        elif cmd == 'getVoltage': # getVoltage
+            return self.getBatteryVoltage()
+        elif cmd == 'getCurrent': # getCurrent
+            return self.getMotorCurrent()
+        
+    speedFactor = 5
+    flip = False

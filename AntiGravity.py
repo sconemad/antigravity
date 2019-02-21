@@ -57,16 +57,16 @@ class AntiGravity(Bot, JSCallback):
         self.ctrlServer = CtrlServer(self)
         self.turtle = Turtle(self)
         self.js = JS(self)
-        self.camera = Camera()
+#        self.camera = Camera()
         
         # Mode modules - launched by the 'x' (AKA SQUARE) button
         # Functions MUST implement a start() method
         self.modules = {
-            "rainbow": Rainbow(self),
-            "distance": Distance(self),
-            "testline": Testline(self),
-            "straightline": Straightline(self),
-            "calibrate": Calibrate(self),
+#            "rainbow": Rainbow(self),
+#            "distance": Distance(self),
+#            "testline": Testline(self),
+#            "straightline": Straightline(self),
+#            "calibrate": Calibrate(self),
 #            "maze": Maze(self),
 #            "maze2": Maze2(self),
             "dummy": Dummy(self)
@@ -111,12 +111,13 @@ class AntiGravity(Bot, JSCallback):
 
     def batTimer(self, args):
         v = self.drive.getBatteryVoltage()
-        self.logMsg("Battery voltate: %0.1fv" % (v))
+        self.logMsg("Battery voltage: %0.1fv" % (v))
         self.setTimer(10, self.batTimer)
         
     def leftStick(self, x, y):
         "Notification of a gamepad left analog stick event"
         self.logMsg('LEFT_STICK: %.3f %.3f' % (x, y))
+        self.servo.setAngle(0, (x+1)*90)
 
     def rightStick(self, x, y):
         "Notification of a gamepad right analog stick event"
@@ -135,12 +136,12 @@ class AntiGravity(Bot, JSCallback):
         else:
             self.logMsg("BUTTON %s up" % (b))
         if (down): return
-        if (b == 'tl'): self.drive.setFlip(0)
-        if (b == 'tl2'): self.drive.setFlip(1)
+        if (b == 'tl'): self.drive.setFlip(False)
+        if (b == 'tl2'): self.drive.setFlip(True)
         if (b == 'tr'): self.drive.decSpeedFactor()
         if (b == 'tr2'): self.drive.incSpeedFactor()
-        if (b == 'thumbl'):
-             print("nothing")
+        if (b == 'thumbl'): print("nothing")
+        if (b == 'thumbr'): self.drive.halt()
         if (b == 'x'):  # AKA square
             self.currentmode = "Auto : " + self.modulemode
             module = self.modules.get(self.modulemode,None)
