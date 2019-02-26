@@ -95,7 +95,7 @@ void Robot::threadFunction(Environment* env)
           std::lock_guard<std::mutex> lg(obstacleMutex);
           obstacles.push_back(Obstacle(p));
         }
-
+/*
         if (s.getUltraSound()) {
           // Wait, to prevent next measurement to respond to last one's sound
           // We assume we need to wait for sound to travel at least 3 meters
@@ -109,6 +109,7 @@ void Robot::threadFunction(Environment* env)
         else {
           std::this_thread::sleep_for(std::chrono::milliseconds(20));
         }
+        */
       }
     }
   }
