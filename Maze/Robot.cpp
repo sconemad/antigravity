@@ -66,6 +66,11 @@ void Robot::threadFunction(Environment* env)
       const TimePoint tm = Clock::now();
       auto d = tm - time;
       double musec = (double)std::chrono::duration_cast<std::chrono::microseconds>(d).count();
+      if (musec < 20000) {
+        // We don't want to do more than 50 measurements a second
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        continue;
+      }
       time = tm;
 
       Move(env, musec);      // Move robot in internal representation
