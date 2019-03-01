@@ -89,6 +89,14 @@ class Drive :
         self.tls = ls
         self.trs = rs
 
+    def setDriveST(self, s, t):
+        if t > 0:
+            self.trs = s
+            self.tls = s * (t-1) / (t+1)
+        else:
+            self.tls = s
+            self.trs = s * (-t-1) / (-t+1)
+        
     def setDriveXY(self, x, y):
         'Set motor speeds based on X/Y joystick position'
         speed = math.sqrt(x*x + y*y)
@@ -162,16 +170,14 @@ class Drive :
             ls = float(args[1])
             rs = float(args[2])
             self.setDriveLR(ls,rs)
-        elif cmd == 'set': # set <speed> <angle>
-            speed = float(args[1])
-            angle = float(args[2])
-            self.setDrive(speed,angle)
-        elif cmd == 'setSpeed': # setSpeed <speed>
-            speed = float(args[1])
-            self.setSpeed(speed)
-        elif cmd == 'setAngle': # setAngle <angle>
-            angle = float(args[1])
-            self.setAngle(angle)
+        if cmd == 'setXY': # setXY <x> <y>
+            x = float(args[1])
+            y = float(args[2])
+            self.setDriveXY(x,y)
+        elif cmd == 'setST': # set <speed> <turn-rad>
+            s = float(args[1])
+            t = float(args[2])
+            self.setDriveST(s,t)
         elif cmd == 'setSpeedFactor': # setSpeedFactor <factor>
             sf = int(args[1])
             self.setSpeedFactor(sf)

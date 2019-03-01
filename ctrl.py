@@ -36,11 +36,11 @@ class CtrlClient(asyncio.Protocol) :
     def close(self):
         self.transport.close()
         
-    def setDrive(self, speed, angle):
-        self.transport.write(("drive set %f %f" % (speed, angle)).encode())
-
     def setDriveLR(self, ls, rs):
         self.transport.write(("drive setLR %f %f" % (ls, rs)).encode())
+
+    def setDriveST(self, speed, turn):
+        self.transport.write(("drive setST %f %f" % (speed, turn)).encode())
 
     def halt(self):
         self.transport.write(("drive halt").encode())
@@ -93,6 +93,11 @@ def stdinEvent():
         elif chr(k[0])=='c':
             client.getCurrent()
 
+        elif chr(k[0])=='a':
+            client.setDriveST(1.0, 5.0)
+        elif chr(k[0])=='s':
+            client.setDriveST(1.0, -5.0)
+            
         elif chr(k[0])==']':
             angle = angle + 10
             if angle > 180: angle = 180
