@@ -207,10 +207,7 @@ double Simulation::getDistance(const Sensor& s)
     return -1.0;
 
   const double distance = (mindist + maxdist) / 2.0;
-  if (s.getUltraSound()) {
-    const unsigned int m = 1000 * toint(2.0 * distance) / 343 + 1000; // extra ms
-    std::this_thread::sleep_for(std::chrono::microseconds(m));
-  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
   return distance;
 }
 

@@ -240,7 +240,6 @@ class Sensor {
   double MoveDist;
   Angle angle;
   double mindist;
-  bool ultraSound = true;
 
 public:
   Sensor(int n, double x, double y, Angle a, double md = 50.0) :
@@ -265,12 +264,6 @@ public:
 
   void SetLast(Point ob) {
     m_last = ob;
-  }
-
-  bool getUltraSound() const { return ultraSound; }
-
-  void SetUltraSound(bool u) {
-    ultraSound = u;
   }
 
 private:

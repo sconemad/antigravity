@@ -109,6 +109,9 @@ public:
 
   void Move(Environment* M, double musec);
 
+  // Test function, move forward at maximum speed
+  void Move(Environment* M, bool move);
+
   void Correct(Environment* env);
 
   const std::vector<Point> GetObstacles() const;

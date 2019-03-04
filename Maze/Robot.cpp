@@ -55,6 +55,11 @@ void Robot::Move(Environment* env, double musec)
   }
 }
 
+void Robot::Move(Environment* M, bool move) {
+  if (move) M->setSpeed(maxspeed, maxspeed);
+  else M->setSpeed(0.0, 0.0);
+}
+
 void Robot::threadFunction(Environment* env)
 {
   static TimePoint time = Clock::now();
@@ -100,21 +105,6 @@ void Robot::threadFunction(Environment* env)
           std::lock_guard<std::mutex> lg(obstacleMutex);
           obstacles.push_back(Obstacle(p));
         }
-/*
-        if (s.getUltraSound()) {
-          // Wait, to prevent next measurement to respond to last one's sound
-          // We assume we need to wait for sound to travel at least 3 meters
-          // but we can subtract the distance it has already travelled
-          const double dist = 3000 - 2.0 * distance;
-          if (dist > 0.0) {
-            const unsigned int m = 1000 * toint(dist) / 343;
-            std::this_thread::sleep_for(std::chrono::microseconds(m));
-          }
-        }
-        else {
-          std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        }
-        */
       }
     }
   }
@@ -353,9 +343,9 @@ void Robot2::initiate(Environment* env)
   wid = 245;
   env->setRobotDimensions(static_cast<int>(len), static_cast<int>(wid));
 
-  sensors.push_back(Sensor(1, -wid / 4.0, len / 2.0 + 33.0, Angle(-pi / 3.0), 40.0));
-  sensors.push_back(Sensor(2, 0.0, len / 2.0 + 55.0, Angle(0.0), 30.0));
-  sensors.push_back(Sensor(3, wid / 4.0, len / 2.0 + 33.0, Angle(pi / 3.0), 40.0));
+  sensors.push_back(Sensor(1, -wid / 4.0, len / 2.0 + 33.0, Angle(-pi / 3.0), 100.0));
+  sensors.push_back(Sensor(2, 0.0, len / 2.0 + 55.0, Angle(0.0), 80.0));
+  sensors.push_back(Sensor(3, wid / 4.0, len / 2.0 + 33.0, Angle(pi / 3.0), 100.0));
 }
 
 void Robot3::initiate(Environment* env)
