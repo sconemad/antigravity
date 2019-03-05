@@ -270,6 +270,7 @@ void Simulation::write(std::string filename, const std::vector<Point>& pvec)
   generateBitmapImage(area, area.at(0).size(), area.size(), filename.c_str());
 }
 
+#ifndef WIN32
 void Reality::write(std::string filename, const std::vector<Point>& pvec)
 {
   int minx = 0, maxx = 0, miny = 0, maxy = 0;
@@ -304,7 +305,7 @@ void Reality::write(std::string filename, const std::vector<Point>& pvec)
 
   generateBitmapImage(area, area.at(0).size(), area.size(), filename.c_str());
 }
-
+#endif
 
 //////////////////////////  Maze1 2018 maze  ////////////////////////
 

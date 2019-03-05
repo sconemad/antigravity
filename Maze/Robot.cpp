@@ -115,12 +115,15 @@ void Robot::threadFunction(Environment* env)
 
 struct Node
 {
-  double maxheight = std::numeric_limits<double>::max();  // max height of path
-  double height = std::numeric_limits<double>::max();
-  double pathlen = std::numeric_limits<double>::max();
-  bool visited = false;
-  bool destination = false;
+  float maxheight = std::numeric_limits<float>::max();  // max height of path
+  float height = std::numeric_limits<float>::max();
+  float pathlen = std::numeric_limits<float>::max();
   short px = -1, py = -1; // previous node
+  bool destination = false;
+
+  bool heightCalculated() const {
+    return height != std::numeric_limits<float>::max();
+  }
 
   // Connecting via N is better than my existing connection
   bool bettervia(const Node& N) const {
@@ -160,7 +163,9 @@ void Robot::Correct(Environment* env)
   }
 
   const unsigned int vecsize = searchdist * 2 + 1;
-  Vector2D<Node> space(vecsize, vecsize);
+  static Vector2D<Node> space(vecsize, vecsize);
+  space.clear();
+  space.resize(vecsize, vecsize);
 
   const Point start(searchdist, searchdist);
 
@@ -192,7 +197,7 @@ void Robot::Correct(Environment* env)
 
   // Prepare start node
   Node& startNode = space.Get(searchdist, searchdist);
-  startNode.height = getHeight(origin + Point(searchdist * 10.0, searchdist * 10.0));
+  startNode.height = (float)getHeight(origin + Point(searchdist * 10.0, searchdist * 10.0));
   startNode.maxheight = startNode.height;
   startNode.pathlen = startNode.height; // length is sum of heights, for now
 
@@ -203,16 +208,16 @@ void Robot::Correct(Environment* env)
     ++nodes;
 
     // Find the 'current' Node, the one with the best maximum height
-    double bestscore = std::min(minwalldist, BestDestinationNode.maxheight);
+    float bestscore = std::min((float)minwalldist, BestDestinationNode.maxheight);
     unsigned int bestindex = notvisited.size();
 
-    for (unsigned int nv = 0; nv < notvisited.size(); ++nv) {
+    for (std::size_t nv = 0; nv < notvisited.size(); ++nv) {
       const auto& p = notvisited[nv];
-      const Node& n = space.Get(p.first, p.second);
+      const float mh = space.Get(p.first, p.second).maxheight;
 
-      if (n.maxheight < bestscore)
+      if (mh < bestscore)
       {
-        bestscore = n.maxheight;
+        bestscore = mh;
         bestindex = nv;
       }
     }
@@ -224,8 +229,6 @@ void Robot::Correct(Environment* env)
     notvisited.erase(notvisited.begin() + bestindex);
 
     Node& currentNode = space.Get(bestx, besty);
-    // Mark as visited
-    currentNode.visited = true;
 
     // Process neighbours
 
@@ -240,13 +243,14 @@ void Robot::Correct(Environment* env)
       for (int y = ystart; y <= yend; ++y)
       {
         Node& Neighbour = space.Get(x, y);
-        //if (Neighbour.visited) continue;  // Correct according to Dijkstra
 
-        if (Neighbour.height == std::numeric_limits<double>::max())
+        if (!Neighbour.heightCalculated())
         {
-          Neighbour.height = getHeight(origin + Point(10.0 * x, 10.0 * y));
+          Neighbour.height = (float)getHeight(origin + Point(10.0 * x, 10.0 * y));
           Neighbour.Connect(currentNode, bestx, besty);
-          if (!Neighbour.destination) notvisited.push_back({x, y});
+          if (!Neighbour.destination && Neighbour.height <= minwalldist) {
+            notvisited.push_back({x, y});
+          }
         }
         else if (Neighbour.bettervia(currentNode))
         {

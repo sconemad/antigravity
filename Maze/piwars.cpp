@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
   double maxSpeed = 0.0;
   double maxPerc = 100.0;
 
-  for (unsigned int a = 1; a < argc; ++a) {
+  for (int a = 1; a < argc; ++a) {
     if (strcmp(argv[a], "-help") == 0) {
       std::cout << "Options:" << std::endl;
       std::cout << "    -sim           : Run a marsmaze simulation instead of reality" << std::endl;
@@ -47,7 +47,12 @@ int main(int argc, char* argv[])
     }
   }
 
+#ifndef WIN32
   std::unique_ptr<Environment> env(sim ? (Environment*)new MarsMaze() : (Environment*)new Reality());
+#else
+  std::unique_ptr<Environment> env(new MarsMaze());
+#endif
+
   Robot2 R(env.get());
 
   R.initiate(env.get());                        // Define dimensions and sensors (add maxspeed?)
