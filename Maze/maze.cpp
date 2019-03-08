@@ -207,10 +207,7 @@ double Simulation::getDistance(const Sensor& s)
     return -1.0;
 
   const double distance = (mindist + maxdist) / 2.0;
-  if (s.getUltraSound()) {
-    const unsigned int m = 1000 * toint(2.0 * distance) / 343 + 1000; // extra ms
-    std::this_thread::sleep_for(std::chrono::microseconds(m));
-  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
   return distance;
 }
 
@@ -273,6 +270,7 @@ void Simulation::write(std::string filename, const std::vector<Point>& pvec)
   generateBitmapImage(area, area.at(0).size(), area.size(), filename.c_str());
 }
 
+#ifndef WIN32
 void Reality::write(std::string filename, const std::vector<Point>& pvec)
 {
   int minx = 0, maxx = 0, miny = 0, maxy = 0;
@@ -307,7 +305,7 @@ void Reality::write(std::string filename, const std::vector<Point>& pvec)
 
   generateBitmapImage(area, area.at(0).size(), area.size(), filename.c_str());
 }
-
+#endif
 
 //////////////////////////  Maze1 2018 maze  ////////////////////////
 

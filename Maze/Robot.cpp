@@ -55,6 +55,11 @@ void Robot::Move(Environment* env, double musec)
   }
 }
 
+void Robot::Move(Environment* M, bool move) {
+  if (move) M->setSpeed(maxspeed, maxspeed);
+  else M->setSpeed(0.0, 0.0);
+}
+
 void Robot::threadFunction(Environment* env)
 {
   static TimePoint time = Clock::now();
@@ -100,21 +105,6 @@ void Robot::threadFunction(Environment* env)
           std::lock_guard<std::mutex> lg(obstacleMutex);
           obstacles.push_back(Obstacle(p));
         }
-/*
-        if (s.getUltraSound()) {
-          // Wait, to prevent next measurement to respond to last one's sound
-          // We assume we need to wait for sound to travel at least 3 meters
-          // but we can subtract the distance it has already travelled
-          const double dist = 3000 - 2.0 * distance;
-          if (dist > 0.0) {
-            const unsigned int m = 1000 * toint(dist) / 343;
-            std::this_thread::sleep_for(std::chrono::microseconds(m));
-          }
-        }
-        else {
-          std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        }
-        */
       }
     }
   }
@@ -125,12 +115,15 @@ void Robot::threadFunction(Environment* env)
 
 struct Node
 {
-  double maxheight = std::numeric_limits<double>::max();  // max height of path
-  double height = std::numeric_limits<double>::max();
-  double pathlen = std::numeric_limits<double>::max();
-  bool visited = false;
-  bool destination = false;
+  float maxheight = std::numeric_limits<float>::max();  // max height of path
+  float height = std::numeric_limits<float>::max();
+  float pathlen = std::numeric_limits<float>::max();
   short px = -1, py = -1; // previous node
+  bool destination = false;
+
+  bool heightCalculated() const {
+    return height != std::numeric_limits<float>::max();
+  }
 
   // Connecting via N is better than my existing connection
   bool bettervia(const Node& N) const {
@@ -170,7 +163,9 @@ void Robot::Correct(Environment* env)
   }
 
   const unsigned int vecsize = searchdist * 2 + 1;
-  Vector2D<Node> space(vecsize, vecsize);
+  static Vector2D<Node> space(vecsize, vecsize);
+  space.clear();
+  space.resize(vecsize, vecsize);
 
   const Point start(searchdist, searchdist);
 
@@ -202,7 +197,7 @@ void Robot::Correct(Environment* env)
 
   // Prepare start node
   Node& startNode = space.Get(searchdist, searchdist);
-  startNode.height = getHeight(origin + Point(searchdist * 10.0, searchdist * 10.0));
+  startNode.height = (float)getHeight(origin + Point(searchdist * 10.0, searchdist * 10.0));
   startNode.maxheight = startNode.height;
   startNode.pathlen = startNode.height; // length is sum of heights, for now
 
@@ -213,16 +208,16 @@ void Robot::Correct(Environment* env)
     ++nodes;
 
     // Find the 'current' Node, the one with the best maximum height
-    double bestscore = std::min(minwalldist, BestDestinationNode.maxheight);
+    float bestscore = std::min((float)minwalldist, BestDestinationNode.maxheight);
     unsigned int bestindex = notvisited.size();
 
-    for (unsigned int nv = 0; nv < notvisited.size(); ++nv) {
+    for (std::size_t nv = 0; nv < notvisited.size(); ++nv) {
       const auto& p = notvisited[nv];
-      const Node& n = space.Get(p.first, p.second);
+      const float mh = space.Get(p.first, p.second).maxheight;
 
-      if (n.maxheight < bestscore)
+      if (mh < bestscore)
       {
-        bestscore = n.maxheight;
+        bestscore = mh;
         bestindex = nv;
       }
     }
@@ -234,8 +229,6 @@ void Robot::Correct(Environment* env)
     notvisited.erase(notvisited.begin() + bestindex);
 
     Node& currentNode = space.Get(bestx, besty);
-    // Mark as visited
-    currentNode.visited = true;
 
     // Process neighbours
 
@@ -250,13 +243,14 @@ void Robot::Correct(Environment* env)
       for (int y = ystart; y <= yend; ++y)
       {
         Node& Neighbour = space.Get(x, y);
-        //if (Neighbour.visited) continue;  // Correct according to Dijkstra
 
-        if (Neighbour.height == std::numeric_limits<double>::max())
+        if (!Neighbour.heightCalculated())
         {
-          Neighbour.height = getHeight(origin + Point(10.0 * x, 10.0 * y));
+          Neighbour.height = (float)getHeight(origin + Point(10.0 * x, 10.0 * y));
           Neighbour.Connect(currentNode, bestx, besty);
-          if (!Neighbour.destination) notvisited.push_back({x, y});
+          if (!Neighbour.destination && Neighbour.height <= minwalldist) {
+            notvisited.push_back({x, y});
+          }
         }
         else if (Neighbour.bettervia(currentNode))
         {
@@ -353,9 +347,9 @@ void Robot2::initiate(Environment* env)
   wid = 245;
   env->setRobotDimensions(static_cast<int>(len), static_cast<int>(wid));
 
-  sensors.push_back(Sensor(1, -wid / 4.0, len / 2.0 + 33.0, Angle(-pi / 3.0), 40.0));
-  sensors.push_back(Sensor(2, 0.0, len / 2.0 + 55.0, Angle(0.0), 30.0));
-  sensors.push_back(Sensor(3, wid / 4.0, len / 2.0 + 33.0, Angle(pi / 3.0), 40.0));
+  sensors.push_back(Sensor(1, -wid / 4.0, len / 2.0 + 33.0, Angle(-pi / 3.0), 100.0));
+  sensors.push_back(Sensor(2, 0.0, len / 2.0 + 55.0, Angle(0.0), 80.0));
+  sensors.push_back(Sensor(3, wid / 4.0, len / 2.0 + 33.0, Angle(pi / 3.0), 100.0));
 }
 
 void Robot3::initiate(Environment* env)

@@ -38,6 +38,13 @@ public:
     if (x >= m_xsize || y >= m_ysize) throw std::out_of_range("Vector2D");
     return m_Vec[x + y * m_xsize];
   }
+
+  void clear() { m_Vec.clear(); }
+  void resize(int xsize, int ysize) {
+    m_xsize = xsize;
+    m_ysize = ysize;
+    m_Vec.resize(xsize * ysize, T());
+  }
 };
 
 class Angle
@@ -240,7 +247,6 @@ class Sensor {
   double MoveDist;
   Angle angle;
   double mindist;
-  bool ultraSound = true;
 
 public:
   Sensor(int n, double x, double y, Angle a, double md = 50.0) :
@@ -265,12 +271,6 @@ public:
 
   void SetLast(Point ob) {
     m_last = ob;
-  }
-
-  bool getUltraSound() const { return ultraSound; }
-
-  void SetUltraSound(bool u) {
-    ultraSound = u;
   }
 
 private:
