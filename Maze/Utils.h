@@ -229,7 +229,7 @@ public:
   {
     const double speed = (spdl + spdr) / 2000.0;  // mm / ms
     const double dist = speed * 10.0;
-    const Angle rad = Speed2Angle(spdl, spdr, wid - 15.0, dist);
+    const Angle rad = Speed2Angle(spdl, spdr, wid, dist);
 
     // Move in steps of 10ms, to create smooth circular paths
     while (ms > 0.0) {

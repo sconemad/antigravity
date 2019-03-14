@@ -29,7 +29,7 @@ void Robot::Move(Environment* env, double musec)
   Pos P = getRobotPos();
   {
     std::lock_guard<std::mutex> lg(speedMutex);
-    P.Curve(speedl, speedr, musec / 1000.0, 240.0);
+    P.Curve(speedl, speedr, musec / 1000.0, turnWidth());
 
     setRobotPos(P);
 
@@ -332,7 +332,8 @@ void Robot1::initiate(Environment* env)
 {
   len = 260;
   wid = 240;
-  env->setRobotDimensions(static_cast<int>(len), static_cast<int>(wid));
+  tire = 10;
+  env->setRobotDimensions(static_cast<int>(len), static_cast<int>(wid), static_cast<int>(tire));
 
   sensors.push_back(Sensor(1, -wid / 2.0, len / 2.0, Angle(-hpi), 20.0));
   sensors.push_back(Sensor(2, -wid / 4.0, len / 2.0, Angle(qpi)));
@@ -344,21 +345,22 @@ void Robot1::initiate(Environment* env)
 void Robot2::initiate(Environment* env)
 {
   len = 120.0;
-  wid = 160.0;
-  wheelwidth = 15.0;
+  wid = 190.0;
+  tire = 25.0;
 
-  env->setRobotDimensions(static_cast<int>(len), static_cast<int>(wid));
+  env->setRobotDimensions(static_cast<int>(len), static_cast<int>(wid), static_cast<int>(tire));
 
-  sensors.push_back(Sensor(1, -30.0, 45.0, Angle(-pi / 3.0), 100.0));
-  sensors.push_back(Sensor(2,   0.0, 35.0, Angle(0.0), 100.0));
-  sensors.push_back(Sensor(3,  30.0, 45.0, Angle(pi / 3.0), 100.0));
+  sensors.push_back(Sensor(1, -30.0, 45.0, Angle(pi / 3.0),  100.0));
+  sensors.push_back(Sensor(2,   0.0, 35.0, Angle(0.0),       100.0));
+  sensors.push_back(Sensor(3,  30.0, 45.0, Angle(-pi / 3.0), 100.0));
 }
 
 void Robot3::initiate(Environment* env)
 {
   len = 110;
   wid = 245;
-  env->setRobotDimensions(static_cast<int>(len), static_cast<int>(wid));
+  tire = 10;
+  env->setRobotDimensions(static_cast<int>(len), static_cast<int>(wid), static_cast<int>(tire));
 
   sensors.push_back(Sensor(1, -wid / 4.0, len / 2.0 + 33.0, Angle(-pi / 4.0), 60.0));
   sensors.push_back(Sensor(2, 0.0, len / 2.0 + 55.0, Angle(0.0), 50.0));

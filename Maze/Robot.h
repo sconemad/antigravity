@@ -48,9 +48,9 @@ protected:
   }
 
   // Dimensions
-  double wid = 0;
-  double len = 0;
-  double wheelwidth = 0;
+  double wid = 0.0;
+  double len = 0.0;
+  double tire = 0.0;
 
   mutable std::mutex locationMutex;
   Pos robotposition;
@@ -77,6 +77,10 @@ public:
   explicit Robot(Environment* env);
   virtual ~Robot() { stop(); }
 
+  double turnWidth() const {
+    return wid - tire;
+  }
+
   void start(Environment* env) {
     std::thread t([this, env] { threadFunction(env); });
     t.swap(workerThread);
@@ -99,13 +103,12 @@ public:
   // Input is double, as this could be more than +/- pi, but will
   // be divided for the direction change
   void AdjustSpeed(double a) {
-    // To correct the angle we need to subtract the actual angle
-    // from the angle we are heading.
-    // Do this in doubles, and only after that use Angle()
-    const Angle diff(a / 2.0);
+
+    Angle diff(a);
+    diff /= 2.0;
 
     std::lock_guard<std::mutex> lg(speedMutex);
-    Angle2Speed(diff, maxspeed, 50, wid - wheelwidth, speedl, speedr);
+    Angle2Speed(diff, maxspeed, 50, turnWidth(), speedl, speedr);
   }
 
   void Move(Environment* M, double musec);
