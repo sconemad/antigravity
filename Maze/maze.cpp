@@ -148,7 +148,7 @@ void Simulation::MoveRobot(double musec)
   if (speedl != 0.0 || speedr != 0.0) {
     Pos P = GetRobotPos();
 
-    P.Curve(speedl, speedr, musec / 1000.0, getRobotWidth());
+    P.Curve(speedl, speedr, musec / 1000.0, getTurnWidth());
     SetRobotPos(P);
 
     Marks.push_back({toint(P.x()), toint(P.y())});

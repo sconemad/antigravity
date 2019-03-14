@@ -15,6 +15,7 @@ class Environment
 protected:
   int robotLen = 0;
   int robotWidth = 0;
+  int tireWidth = 0;
 
   mutable std::mutex posMutex;
   Pos RobotPos;
@@ -35,12 +36,15 @@ public:
 
   void setMaxSpeed(double ms) { maxSpeed = ms; }
 
-  virtual void setRobotDimensions(int len, int wid) {
+  virtual void setRobotDimensions(int len, int wid, int tirewid) {
     robotLen = len;
     robotWidth = wid;
+    tireWidth = tirewid;
   }
   int getRobotWidth()  const { return robotWidth; }
   int getRobotLength() const { return robotLen; }
+  int getTurnWidth() const { return robotWidth - tireWidth; }
+
   virtual void setSpeed(double left, double right) = 0;
 
   Angle getInitialAngle() const { return Angle(0.0); }
@@ -108,8 +112,8 @@ protected:
 public:
   Simulation(int w, int h);
 
-  void setRobotDimensions(int len, int wid) override {
-    Environment::setRobotDimensions(len, wid);
+  void setRobotDimensions(int len, int wid, int tirewid) override {
+    Environment::setRobotDimensions(len, wid, tirewid);
     const double initialx = 35 + 200;       // middle of the road
     const double initialy = getRobotLength() / 2 + 10; // 1cm from bottom
     SetRobotPos(Pos(initialx, initialy, 0.0));
@@ -167,9 +171,10 @@ class MarsMaze : public Simulation
 public:
   MarsMaze();
 
-  void setRobotDimensions(int len, int wid) override {
+  void setRobotDimensions(int len, int wid, int tire) override {
     robotLen = len;
     robotWidth = wid;
+    tireWidth = tire;
     const double initialx = width - 330;       // middle of the road
     const double initialy = getRobotLength() / 2 + 10; // 1cm from bottom
     SetRobotPos(Pos(initialx, initialy, 0.0));
