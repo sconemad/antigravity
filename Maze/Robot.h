@@ -50,6 +50,7 @@ protected:
   // Dimensions
   double wid = 0;
   double len = 0;
+  double wheelwidth = 0;
 
   mutable std::mutex locationMutex;
   Pos robotposition;
@@ -101,10 +102,10 @@ public:
     // To correct the angle we need to subtract the actual angle
     // from the angle we are heading.
     // Do this in doubles, and only after that use Angle()
-    const Angle diff(a / 4.0);
+    const Angle diff(a / 2.0);
 
     std::lock_guard<std::mutex> lg(speedMutex);
-    Angle2Speed(diff, maxspeed, 50, wid - 15.0, speedl, speedr);
+    Angle2Speed(diff, maxspeed, 50, wid - wheelwidth, speedl, speedr);
   }
 
   void Move(Environment* M, double musec);
