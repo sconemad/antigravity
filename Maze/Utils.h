@@ -141,13 +141,14 @@ inline void Angle2Speed(Angle angle, double maxspd, double distance,
   }
 }
 
-inline double sq(double v) { return v * v; }
 
 class Point
 {
 protected:
   double m_x;
   double m_y;
+
+  static double sq(double v) { return v * v; }
 
 public:
   Point(double x = 0.0, double y = 0.0) : m_x(x), m_y(y) {}

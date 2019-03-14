@@ -283,20 +283,26 @@ void Reality::write(std::string filename, const std::vector<Point>& pvec)
     maxy = std::max(maxy, (int)ob.y());
   }
 
-  std::vector< std::vector < bool > > area(maxx - minx + 100, std::vector < bool >(maxy - miny + 100));
+  const unsigned int margin = 20;
+
+  const unsigned int xmax = maxx - minx + 2 * margin;
+  const unsigned int ymax = maxy - miny + 2 * margin;
+  std::vector< std::vector < bool > > area(xmax, std::vector < bool >(ymax));
 
   // Write obstacles
   for (auto ob : pvec) {
-    const int x = toint(ob.x()) - minx + 50;
-    const int y = toint(ob.y()) - miny + 50;
+    const int x = xmax - toint(ob.x()) - minx + margin;
+    const int y = toint(ob.y()) - miny + margin;
 
     for (int xx = x - 2; xx < x + 3; ++xx)
     {
+      std::vector<bool>& xvec = area.at(xx);
+
       if (xx >= 0 && xx < (int)area.size()) {
         for (int yy = y - 2; yy < y + 3; ++yy)
         {
-          if (yy >= 0 && yy < (int)area[xx].size()) {
-            area.at(xx).at(yy) = !area[xx][yy];
+          if (yy >= 0 && yy < (int)xvec.size()) {
+            xvec.at(yy) = !xvec[yy];
           }
         }
       }
