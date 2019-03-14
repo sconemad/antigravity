@@ -343,8 +343,10 @@ void Robot1::initiate(Environment* env)
 
 void Robot2::initiate(Environment* env)
 {
-  len = 120;
-  wid = 165;
+  len = 120.0;
+  wid = 160.0;
+  wheelwidth = 15.0;
+
   env->setRobotDimensions(static_cast<int>(len), static_cast<int>(wid));
 
   sensors.push_back(Sensor(1, -30.0, 45.0, Angle(-pi / 3.0), 100.0));
