@@ -91,7 +91,7 @@ void Robot::threadFunction(Environment* env)
           return;
         }
 
-        if (distance > 1000.0) continue;
+        if (distance > 1250.0) continue;
 
         // Get location of sensor
         Pos p = getRobotPos();
@@ -149,7 +149,7 @@ void Robot::Correct(Environment* env)
   {
     std::lock_guard<std::mutex> lg(obstacleMutex);
 
-    const unsigned int MaxObstacles = 500;
+    const unsigned int MaxObstacles = 200;
     const unsigned int MaxDrobstacles = 10;
 
     if (obstacles.size() > MaxObstacles) {
@@ -169,10 +169,10 @@ void Robot::Correct(Environment* env)
 
   const Point start(searchdist, searchdist);
 
-  std::vector< std::pair< unsigned int, unsigned int > > notvisited;
+  std::vector< std::pair< unsigned short, unsigned short > > notvisited;
   notvisited.reserve(50);
   notvisited.push_back({ searchdist, searchdist });
-  int totalnodes = 0;
+  unsigned int totalnodes = 0;
 
   for (unsigned int x = 0 ; x < vecsize; ++x) {
     for (unsigned int y = 0; y < vecsize; ++y) {
@@ -188,8 +188,8 @@ void Robot::Correct(Environment* env)
   }
 
   const Pos RPos = getRobotPos();
-  std::cout << "Position: " << RPos.x() << ", " << RPos.y();
-  std::cout << " Angle: " << RPos.getAngle();
+  //std::cout << "Position: " << RPos.x() << ", " << RPos.y();
+  //std::cout << " Angle: " << RPos.getAngle();
 
   Pos centre = RPos;
   centre.Move(offset);
@@ -293,7 +293,7 @@ void Robot::Correct(Environment* env)
   }
 
   const double meanangle = sumangle / numsteps;
-  std::cout << ", Mean angle = " << meanangle;
+  // std::cout << ", Mean angle = " << meanangle;
   AdjustSpeed(meanangle);
   env->setSpeed(speedl, speedr);
 
