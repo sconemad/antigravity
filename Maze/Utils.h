@@ -67,6 +67,13 @@ public:
     return *this;
   }
 
+  operator double() const { return radians; }
+  double getRadians() const { return radians; }
+
+  void add(double r) {
+    assign(radians + r);
+  }
+
   Angle operator+(Angle a) const {
     a += *this;
     return a;
@@ -80,8 +87,6 @@ public:
     res.assign(-res.radians);
     return res;
   }
-
-  operator double() const { return radians; }
 
   void operator+=(const Angle& other) {
     assign(radians + other.radians);
@@ -103,11 +108,12 @@ const Angle qpi(PI / 4.0);
 // positive is to the right, negative to the left
 inline Angle AngleFromPos(double x, double y)
 {
-  return Angle(-(atan2(y, x) - hpi));
+  return Angle(-(atan2(y, x) - hpi.getRadians()));
 }
 
 inline Angle Speed2Angle(double spdl, double spdr, double width, double distance)
 {
+  // Not used anymore
   if (fabs(spdl - spdr) < 0.0001) return Angle(0.0);
   const bool right = spdl > spdr;
   const double maxs = std::max(spdr, spdl);
@@ -224,18 +230,21 @@ public:
     return p;
   }
 
-  // speed in mm / sec
+  // speed in mm / sec, wid in mm
   void Curve(double spdl, double spdr, double ms, double wid)
   {
-    const double speed = (spdl + spdr) / 2000.0;  // mm / ms
-    const double dist = speed * 10.0;
-    const Angle rad = Speed2Angle(spdl, spdr, wid, dist);
+    // Move in small steps to create smooth circular paths
+    const double stepsize = 5.0;    // milliseconds
 
-    // Move in steps of 10ms, to create smooth circular paths
+    // Calculate mean speed in mm / ms
+    const double speed = (spdl + spdr) / 2000.0;
+    // Calculate change in angle per ms
+    const double rawangle = AngleFromPos((spdl - spdr) / 2000.0, wid);
+
     while (ms > 0.0) {
-      const double step = std::min(10.0, ms);
+      const double step = std::min(stepsize, ms);
       ms -= step;
-      angle += rad;
+      angle.add(rawangle * step);
       Move(speed * step);
     }
   }

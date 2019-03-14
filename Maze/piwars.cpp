@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
       std::cout << "    -sim           : Run a marsmaze simulation instead of reality" << std::endl;
       std::cout << "    -steps <n>     : Number of processing steps to do, default 100000" << std::endl;
       std::cout << "    -maxspeed <f>  : Maximum speed of hardware, mm/s, default 0" << std::endl;
-      std::cout << "    -maxperc <f>   : Maximum speed percentage, default 50.0" << std::endl;
+      std::cout << "    -maxperc <f>   : Maximum speed percentage, default 100.0" << std::endl;
       std::cout << "    -testrun <n>   : Run robot for specified time (ms), default 0 = no test" << std::endl;
       return 0;
     }
