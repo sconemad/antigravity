@@ -273,7 +273,10 @@ void Simulation::write(std::string filename, const std::vector<Point>& pvec)
 #ifndef WIN32
 void Reality::write(std::string filename, const std::vector<Point>& pvec)
 {
-  int minx = 0, maxx = 0, miny = 0, maxy = 0;
+  int minx = std::numeric_limits<int>::max();
+  int maxx = std::numeric_limits<int>::lowest();
+  int miny = std::numeric_limits<int>::max();
+  int maxy = std::numeric_limits<int>::lowest();
 
   // Get range of obstacles
   for (auto ob : pvec) {
@@ -283,7 +286,7 @@ void Reality::write(std::string filename, const std::vector<Point>& pvec)
     maxy = std::max(maxy, (int)ob.y());
   }
 
-  const unsigned int margin = 20;
+  const unsigned int margin = 30;
 
   const unsigned int xmax = maxx - minx + 2 * margin;
   const unsigned int ymax = maxy - miny + 2 * margin;
@@ -298,6 +301,7 @@ void Reality::write(std::string filename, const std::vector<Point>& pvec)
     {
       if (xx >= 0 && xx < (int)area.size()) {
         std::vector<bool>& xvec = area.at(xx);
+        
         for (int yy = y - 2; yy < y + 3; ++yy)
         {
           if (yy >= 0 && yy < (int)xvec.size()) {
