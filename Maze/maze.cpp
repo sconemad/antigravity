@@ -296,9 +296,8 @@ void Reality::write(std::string filename, const std::vector<Point>& pvec)
 
     for (int xx = x - 2; xx < x + 3; ++xx)
     {
-      std::vector<bool>& xvec = area.at(xx);
-
       if (xx >= 0 && xx < (int)area.size()) {
+        std::vector<bool>& xvec = area.at(xx);
         for (int yy = y - 2; yy < y + 3; ++yy)
         {
           if (yy >= 0 && yy < (int)xvec.size()) {
