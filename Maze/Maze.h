@@ -182,6 +182,22 @@ public:
   }
 };
 
+class OpenSpace : public Simulation
+{
+public:
+  OpenSpace() : Simulation(10000, 10000) {}
+
+  void setRobotDimensions(int len, int wid, int tire) override {
+    robotLen = len;
+    robotWidth = wid;
+    tireWidth = tire;
+    const double initialx = 5000;
+    const double initialy = 5000;
+    SetRobotPos(Pos(initialx, initialy, 0.0));
+    InitialPos = GetRobotPos();
+  }
+};
+
 #ifndef WIN32
 class Reality : public Environment
 {

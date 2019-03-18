@@ -100,6 +100,11 @@ public:
     maxspeed = m;
   }
 
+  void SetSpeed(double left, double right) {
+    speedl = left * maxspeed;
+    speedr = right * maxspeed;
+  }
+
   // Input is double, as this could be more than +/- pi, but will
   // be divided for the direction change
   void AdjustSpeed(double a) {
