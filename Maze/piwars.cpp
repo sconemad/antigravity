@@ -7,6 +7,22 @@
 
 int main(int argc, char* argv[])
 {
+  /*
+  Pos p(-150.0, 0.0, 0.0);
+  double left = 20.0;   //  mm / sec
+  double right = 10.0;
+  double mean = (left + right) / 2.0;
+
+  double totaldist = 150 * 2.0 * PI;   // Full circle
+  double totaltime = totaldist / mean;
+
+  for (int c = 0; c < 8; ++c) {
+    p.Curve(left, right, 1000.0 * totaltime / 8.0, 100.0);
+  }
+
+  return 0;
+  */
+ 
   bool sim = false;
   int maxsteps = 100000;
   int test = 0;
@@ -60,7 +76,9 @@ int main(int argc, char* argv[])
     R.SetMaxSpeed(maxSpeed * maxPerc / 100.0);    // mm/s , speed limit
     env->setMaxSpeed(maxSpeed);                   // mm/s , maximum speed possible
     R.SetSpeed(0.5, 1.0);
-    for (unsigned int s = 0; s < 12; ++s) R.Move(env.get(), true);
+    for (unsigned int s = 0; s < 12; ++s) {
+      R.Move(env.get(), true);
+    }
     R.Move(env.get(), false);
   }
 

@@ -50,10 +50,12 @@ public:
 
 class Angle
 {
+  // The aim is to have angle always between +pi and -pi
   double radians;
 
   void assign(double rad) {
     radians = remainder(rad, 2.0 * PI);
+    if (radians > PI) radians -= PI;
   }
 
 public:
@@ -177,17 +179,17 @@ public:
     m_y += cos(ang) * len;
   }
 
-  void Rotate(Angle ang)
+  void Rotate(const Angle ang)
   {
     const double sina = sin(ang);
     const double cosa = cos(ang);
-    const double x = m_x * cosa - m_y * sina;
-    const double y = m_x * sina + m_y * cosa;
+    const double x = (ang > 0.0) ? m_x * cosa + m_y * sina : m_x * cosa - m_y * sina;
+    const double y = (ang > 0.0) ? m_y * cosa - m_x * sina : m_y * cosa + m_x * sina;
     m_x = x;
     m_y = y;
   }
 
-  void Rotate(Angle ang, Point p)
+  void Rotate(const Angle ang, const Point p)
   {
     operator-=(p);
     Rotate(ang);
@@ -235,7 +237,7 @@ public:
     Point::Move(ang + angle, len);
   }
 
-  void Rotate(Angle ang, Point p) {
+  void Rotate(const Angle ang, const Point p) {
     Point::Rotate(ang, p);
     angle += ang;
   }
@@ -278,7 +280,7 @@ public:
   {
     const double meanspeed = (spdl + spdr) / 2000.0;  // mm/ms
     if (spdl == spdr) {
-      Move(meanspeed * ms);  // Straight line
+      Move(meanspeed * ms);  // Straight line, in direction robot is facing
     }
     else {
       const Pos old = *this;
