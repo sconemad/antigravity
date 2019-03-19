@@ -7,8 +7,8 @@
 
 int main(int argc, char* argv[])
 {
-  /*
-  Pos p(-150.0, 0.0, 0.0);
+/*
+  Pos p(0.0, 0.0, 0.0);
   double left = 20.0;   //  mm / sec
   double right = 10.0;
   double mean = (left + right) / 2.0;
@@ -21,12 +21,11 @@ int main(int argc, char* argv[])
   }
 
   return 0;
-  */
+*/
  
   bool sim = false;
   int maxsteps = 100000;
   int test = 0;
-  int radius = -1;
   double maxSpeed = 0.0;
   double maxPerc = 100.0;
 
@@ -38,7 +37,6 @@ int main(int argc, char* argv[])
       std::cout << "    -maxspeed <f>   : Maximum speed of hardware, mm/s, default 0" << std::endl;
       std::cout << "    -maxperc <f>    : Maximum speed percentage, default 100.0" << std::endl;
       std::cout << "    -testrun <n>    : Run robot for specified time (ms), default 0 = no test" << std::endl;
-      std::cout << "    -testcircle <n> : Make a complete circle with radius n, sim or real" << std::endl;
       return 0;
     }
     else if (strcmp(argv[a], "-sim") == 0) {
@@ -60,26 +58,9 @@ int main(int argc, char* argv[])
       if (++a < argc) test = std::stoi(argv[a]);
       else throw std::invalid_argument("No argument for -testrun option");
     }
-    else if (strcmp(argv[a], "-testcircle") == 0) {
-      if (++a < argc) radius = std::stoi(argv[a]);
-      else throw std::invalid_argument("No argument for -testrun option");
-    }
     else {
       std::cout << "Unknown option: " << argv[a] << std::endl;
     }
-  }
-
-  if (radius != -1) {
-    std::unique_ptr<Environment> env(new OpenSpace());
-    Robot2 R(env.get());
-    R.initiate(env.get());
-    R.SetMaxSpeed(maxSpeed * maxPerc / 100.0);    // mm/s , speed limit
-    env->setMaxSpeed(maxSpeed);                   // mm/s , maximum speed possible
-    R.SetSpeed(0.5, 1.0);
-    for (unsigned int s = 0; s < 12; ++s) {
-      R.Move(env.get(), true);
-    }
-    R.Move(env.get(), false);
   }
 
 #ifndef WIN32

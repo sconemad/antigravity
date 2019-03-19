@@ -287,12 +287,12 @@ void Robot::Correct(Environment* env)
 
   for (int i = 1; i <= numsteps; ++i) {
     const Point P = plotpath.at(plotpath.size() - i);
-    Angle tmp = AngleFromPos(P.x() - searchdist, P.y() - searchdist);
-    tmp -= RPos.getAngle();
-    sumangle += tmp;
+    sumangle += AngleFromPos(P.x() - searchdist, P.y() - searchdist);
   }
 
-  const double meanangle = sumangle / numsteps;
+  Angle meanangle(sumangle / numsteps);
+  meanangle -= RPos.getAngle();
+
   // std::cout << ", Mean angle = " << meanangle;
   AdjustSpeed(meanangle);
   env->setSpeed(speedl, speedr);

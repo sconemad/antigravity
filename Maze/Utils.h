@@ -2,6 +2,7 @@
 #define _PI_WARS_UTILS_H_
 
 #include <cmath>
+#include <cassert>
 #include <algorithm>
 #include <vector>
 #include <stdexcept>
@@ -50,12 +51,12 @@ public:
 
 class Angle
 {
-  // The aim is to have angle always between +pi and -pi
   double radians;
 
   void assign(double rad) {
+    // Remainder will make sure that angle is always between +pi and -pi
     radians = remainder(rad, 2.0 * PI);
-    if (radians > PI) radians -= PI;
+    assert(radians <= PI && radians >= -PI);
   }
 
 public:
@@ -78,17 +79,17 @@ public:
   }
 
   Angle operator+(Angle a) const {
-    a += *this;
-    return a;
+    Angle tmp(radians);
+    tmp += a;
+    return tmp;
   }
   Angle operator-(Angle a) const {
-    a -= *this;
-    return a;
+    Angle tmp(radians);
+    tmp -= a;
+    return tmp;
   }
   Angle operator-() const {
-    Angle res = *this;
-    res.assign(-res.radians);
-    return res;
+    return Angle(-radians);
   }
 
   void operator+=(const Angle& other) {
@@ -183,8 +184,10 @@ public:
   {
     const double sina = sin(ang);
     const double cosa = cos(ang);
-    const double x = (ang > 0.0) ? m_x * cosa + m_y * sina : m_x * cosa - m_y * sina;
-    const double y = (ang > 0.0) ? m_y * cosa - m_x * sina : m_y * cosa + m_x * sina;
+    //const double x = (ang > 0.0) ? (m_x * cosa + m_y * sina) : (m_x * cosa - m_y * sina);
+    //const double y = (ang > 0.0) ? (m_y * cosa - m_x * sina) : (m_y * cosa + m_x * sina);
+    const double x = m_x * cosa + m_y * sina;
+    const double y = m_y * cosa - m_x * sina;
     m_x = x;
     m_y = y;
   }
@@ -283,7 +286,6 @@ public:
       Move(meanspeed * ms);  // Straight line, in direction robot is facing
     }
     else {
-      const Pos old = *this;
       // get radius from robot center
       const double fast = std::max(spdl, spdr);
       const double slow = std::min(spdl, spdr);
@@ -292,20 +294,14 @@ public:
 
       // get center of rotation
       Point center = *this;
-      center.Move(right ? angle + hpi : angle - hpi, radius);
+      center.Move(right ? (angle + hpi) : (angle - hpi), radius);
 
       // get angle of rotation, in radians
       const double dist = (right ? meanspeed : -meanspeed) * ms;
       const Angle alpha(dist / radius);
-      std::cout << "---> angle: " << alpha.getRadians() << " robot angle: " << angle.getRadians() << std::endl;
-
-      //std::cout << "---> dist: " << dist << " radius: " << radius << std::endl;
 
       // rotate center of robot around center of rotation
       Rotate(alpha, center);
-
-      double distance = old.Distance(*this);
-      //std::cout << "---> actual dist: " << distance << " ratio: " << dist/distance << std::endl;
     }
   }
 };
