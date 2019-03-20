@@ -334,7 +334,7 @@ public:
     return m_last.Distance(ob);
   }
 
-  void SetLast(Point ob) {
+  void SetLast(const Point& ob) {
     m_last = ob;
   }
 

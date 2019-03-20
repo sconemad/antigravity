@@ -9,9 +9,11 @@
 using Clock = std::chrono::high_resolution_clock;
 using TimePoint = std::chrono::time_point<Clock>;
 
-double safeminwalldist = std::numeric_limits<double>::max();
-double minwalldist = std::numeric_limits<double>::max();
+static double safeminwalldist = std::numeric_limits<double>::max();
+static double minwalldist = std::numeric_limits<double>::max();
 
+static const unsigned int MaxObstacles = 100;
+static const unsigned int MaxDrobstacles = 6;
 
 Robot::Robot(Environment* env) :
   robotposition(0.0, 0.0, env->getInitialAngle())
@@ -21,6 +23,8 @@ Robot::Robot(Environment* env) :
   safeminwalldist = ob.Value(D);
   const double mdist = std::min(wid, len) / 2.0;
   minwalldist = ob.Value(Point(0.0, mdist));
+  obstacles.reserve(MaxObstacles + 10);
+  drobstacles.reserve(MaxDrobstacles + 2);
 }
 
 void Robot::Move(Environment* env, double musec)
@@ -148,9 +152,6 @@ void Robot::Correct(Environment* env)
 {
   {
     std::lock_guard<std::mutex> lg(obstacleMutex);
-
-    const unsigned int MaxObstacles = 200;
-    const unsigned int MaxDrobstacles = 10;
 
     if (obstacles.size() > MaxObstacles) {
       const int to_remove = obstacles.size() - MaxObstacles;
@@ -283,15 +284,16 @@ void Robot::Correct(Environment* env)
   const int numsteps = 20;
   double sumangle = 0.0; // do not use Angle class here!
 
-  // Everything should be relative to robot!
+  // Everything should always be relative to robot!
 
   for (int i = 1; i <= numsteps; ++i) {
     const Point P = plotpath.at(plotpath.size() - i);
-    sumangle += AngleFromPos(P.x() - searchdist, P.y() - searchdist);
+    Angle a = AngleFromPos(P.x() - searchdist, P.y() - searchdist);
+    a -= RPos.getAngle();
+    sumangle += a;
   }
 
   Angle meanangle(sumangle / numsteps);
-  meanangle -= RPos.getAngle();
 
   // std::cout << ", Mean angle = " << meanangle;
   AdjustSpeed(meanangle);
