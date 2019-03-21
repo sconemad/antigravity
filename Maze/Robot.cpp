@@ -67,10 +67,15 @@ void Robot::Move(Environment* M, bool move) {
 void Robot::threadFunction(Environment* env)
 {
   static TimePoint time = Clock::now();
+  bool verify = false;
 
   while (true) {
-    for (auto& s : sensors) {
+    size_t snum = 0;
+    while (snum < sensors.size())
+    {
       if (cancelThread) return;
+
+      Sensor& s = sensors.at(snum);
 
       const TimePoint tm = Clock::now();
       auto d = tm - time;
@@ -78,7 +83,7 @@ void Robot::threadFunction(Environment* env)
       if (musec < 20000) {
         // We don't want to do more than 50 measurements a second
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        continue;
+        continue; // do not increment snum
       }
       time = tm;
 
@@ -95,7 +100,10 @@ void Robot::threadFunction(Environment* env)
           return;
         }
 
-        if (distance > 1250.0) continue;
+        if (distance > 1500.0) {
+          ++snum;
+          continue;
+        }
 
         // Get location of sensor
         Pos p = getRobotPos();
@@ -103,13 +111,41 @@ void Robot::threadFunction(Environment* env)
         // Get location of hit
         p.Move(s.getAngle(), distance);
 
-        // Only add obstacle if it's not too close to the last one
-        if (s.DistanceToLast(p) > 15.0) {
+        if (!s.Last()) {
+          // First call for this sensor, make sure to add obstacle
+          // Could skip this. First measurement will then be verified
+          // The choice is between safer and faster
           s.SetLast(p);
+          verify = false;
+          std::lock_guard<std::mutex> lg(obstacleMutex);
+          obstacles.push_back(Obstacle(p));
+          ++snum;
+          continue;
+        }
+
+        // Only add obstacle if it's not too close to the last one, or too far
+        const double lastdist = s.DistanceToLast(p);
+
+        if (lastdist < 15 && !verify) {
+          // Too close and not verifying, do nothing
+          ++snum;
+          continue;
+        }
+
+        s.SetLast(p);   // Either to add or verify
+
+        if (lastdist < 50) {
+          verify = false;
           std::lock_guard<std::mutex> lg(obstacleMutex);
           obstacles.push_back(Obstacle(p));
         }
+        else {
+          // Too far, redo sensor to verify if measurement is correct
+          verify = true;
+          continue;
+        }
       }
+      ++snum;
     }
   }
 }

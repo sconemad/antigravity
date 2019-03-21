@@ -184,8 +184,6 @@ public:
   {
     const double sina = sin(ang);
     const double cosa = cos(ang);
-    //const double x = (ang > 0.0) ? (m_x * cosa + m_y * sina) : (m_x * cosa - m_y * sina);
-    //const double y = (ang > 0.0) ? (m_y * cosa - m_x * sina) : (m_y * cosa + m_x * sina);
     const double x = m_x * cosa + m_y * sina;
     const double y = m_y * cosa - m_x * sina;
     m_x = x;
@@ -336,6 +334,10 @@ public:
 
   void SetLast(const Point& ob) {
     m_last = ob;
+  }
+
+  bool Last() const {
+    return m_last.x() != 0.0 || m_last.y() != 0.0;
   }
 
 private:
