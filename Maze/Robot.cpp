@@ -9,9 +9,11 @@
 using Clock = std::chrono::high_resolution_clock;
 using TimePoint = std::chrono::time_point<Clock>;
 
-double safeminwalldist = std::numeric_limits<double>::max();
-double minwalldist = std::numeric_limits<double>::max();
+static double safeminwalldist = std::numeric_limits<double>::max();
+static double minwalldist = std::numeric_limits<double>::max();
 
+static const unsigned int MaxObstacles = 100;
+static const unsigned int MaxDrobstacles = 6;
 
 Robot::Robot(Environment* env) :
   robotposition(0.0, 0.0, env->getInitialAngle())
@@ -21,6 +23,8 @@ Robot::Robot(Environment* env) :
   safeminwalldist = ob.Value(D);
   const double mdist = std::min(wid, len) / 2.0;
   minwalldist = ob.Value(Point(0.0, mdist));
+  obstacles.reserve(MaxObstacles + 10);
+  drobstacles.reserve(MaxDrobstacles + 2);
 }
 
 void Robot::Move(Environment* env, double musec)
@@ -63,10 +67,15 @@ void Robot::Move(Environment* M, bool move) {
 void Robot::threadFunction(Environment* env)
 {
   static TimePoint time = Clock::now();
+  bool verify = false;
 
   while (true) {
-    for (auto& s : sensors) {
+    size_t snum = 0;
+    while (snum < sensors.size())
+    {
       if (cancelThread) return;
+
+      Sensor& s = sensors.at(snum);
 
       const TimePoint tm = Clock::now();
       auto d = tm - time;
@@ -74,7 +83,7 @@ void Robot::threadFunction(Environment* env)
       if (musec < 20000) {
         // We don't want to do more than 50 measurements a second
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        continue;
+        continue; // do not increment snum
       }
       time = tm;
 
@@ -91,7 +100,10 @@ void Robot::threadFunction(Environment* env)
           return;
         }
 
-        if (distance > 1250.0) continue;
+        if (distance > 1500.0) {
+          ++snum;
+          continue;
+        }
 
         // Get location of sensor
         Pos p = getRobotPos();
@@ -99,13 +111,41 @@ void Robot::threadFunction(Environment* env)
         // Get location of hit
         p.Move(s.getAngle(), distance);
 
-        // Only add obstacle if it's not too close to the last one
-        if (s.DistanceToLast(p) > 15.0) {
+        if (!s.Last()) {
+          // First call for this sensor, make sure to add obstacle
+          // Could skip this. First measurement will then be verified
+          // The choice is between safer and faster
           s.SetLast(p);
+          verify = false;
+          std::lock_guard<std::mutex> lg(obstacleMutex);
+          obstacles.push_back(Obstacle(p));
+          ++snum;
+          continue;
+        }
+
+        // Only add obstacle if it's not too close to the last one, or too far
+        const double lastdist = s.DistanceToLast(p);
+
+        if (lastdist < 15 && !verify) {
+          // Too close and not verifying, do nothing
+          ++snum;
+          continue;
+        }
+
+        s.SetLast(p);   // Either to add or verify
+
+        if (lastdist < 50) {
+          verify = false;
           std::lock_guard<std::mutex> lg(obstacleMutex);
           obstacles.push_back(Obstacle(p));
         }
+        else {
+          // Too far, redo sensor to verify if measurement is correct
+          verify = true;
+          continue;
+        }
       }
+      ++snum;
     }
   }
 }
@@ -148,9 +188,6 @@ void Robot::Correct(Environment* env)
 {
   {
     std::lock_guard<std::mutex> lg(obstacleMutex);
-
-    const unsigned int MaxObstacles = 200;
-    const unsigned int MaxDrobstacles = 10;
 
     if (obstacles.size() > MaxObstacles) {
       const int to_remove = obstacles.size() - MaxObstacles;
@@ -283,16 +320,17 @@ void Robot::Correct(Environment* env)
   const int numsteps = 20;
   double sumangle = 0.0; // do not use Angle class here!
 
-  // Everything should be relative to robot!
+  // Everything should always be relative to robot!
 
   for (int i = 1; i <= numsteps; ++i) {
     const Point P = plotpath.at(plotpath.size() - i);
-    Angle tmp = AngleFromPos(P.x() - searchdist, P.y() - searchdist);
-    tmp -= RPos.getAngle();
-    sumangle += tmp;
+    Angle a = AngleFromPos(P.x() - searchdist, P.y() - searchdist);
+    a -= RPos.getAngle();
+    sumangle += a;
   }
 
-  const double meanangle = sumangle / numsteps;
+  Angle meanangle(sumangle / numsteps);
+
   // std::cout << ", Mean angle = " << meanangle;
   AdjustSpeed(meanangle);
   env->setSpeed(speedl, speedr);

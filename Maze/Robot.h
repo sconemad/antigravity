@@ -100,12 +100,16 @@ public:
     maxspeed = m;
   }
 
+  void SetSpeed(double left, double right) {
+    speedl = left * maxspeed;
+    speedr = right * maxspeed;
+  }
+
   // Input is double, as this could be more than +/- pi, but will
   // be divided for the direction change
   void AdjustSpeed(double a) {
 
-    Angle diff(a);
-    diff /= 2.0;
+    Angle diff(a / 4.0);
 
     std::lock_guard<std::mutex> lg(speedMutex);
     Angle2Speed(diff, maxspeed, 50, turnWidth(), speedl, speedr);

@@ -2,9 +2,11 @@
 #define _PI_WARS_UTILS_H_
 
 #include <cmath>
+#include <cassert>
 #include <algorithm>
 #include <vector>
 #include <stdexcept>
+#include <iostream>
 
 constexpr double PI = 3.14159265359;
 
@@ -52,7 +54,9 @@ class Angle
   double radians;
 
   void assign(double rad) {
+    // Remainder will make sure that angle is always between +pi and -pi
     radians = remainder(rad, 2.0 * PI);
+    assert(radians <= PI && radians >= -PI);
   }
 
 public:
@@ -75,17 +79,17 @@ public:
   }
 
   Angle operator+(Angle a) const {
-    a += *this;
-    return a;
+    Angle tmp(radians);
+    tmp += a;
+    return tmp;
   }
   Angle operator-(Angle a) const {
-    a -= *this;
-    return a;
+    Angle tmp(radians);
+    tmp -= a;
+    return tmp;
   }
   Angle operator-() const {
-    Angle res = *this;
-    res.assign(-res.radians);
-    return res;
+    return Angle(-radians);
   }
 
   void operator+=(const Angle& other) {
@@ -152,6 +156,7 @@ protected:
 
 public:
   Point(double x = 0.0, double y = 0.0) : m_x(x), m_y(y) {}
+  Point(const Point& other) : m_x(other.m_x), m_y(other.m_y) {}
 
   double x() const { return m_x; }
   double y() const { return m_y; }
@@ -173,6 +178,23 @@ public:
   {
     m_x += sin(ang) * len;
     m_y += cos(ang) * len;
+  }
+
+  void Rotate(const Angle ang)
+  {
+    const double sina = sin(ang);
+    const double cosa = cos(ang);
+    const double x = m_x * cosa + m_y * sina;
+    const double y = m_y * cosa - m_x * sina;
+    m_x = x;
+    m_y = y;
+  }
+
+  void Rotate(const Angle ang, const Point p)
+  {
+    operator-=(p);
+    Rotate(ang);
+    operator+=(p);
   }
 
   void operator+=(const Point& other) {
@@ -216,6 +238,11 @@ public:
     Point::Move(ang + angle, len);
   }
 
+  void Rotate(const Angle ang, const Point p) {
+    Point::Rotate(ang, p);
+    angle += ang;
+  }
+
   Pos operator+(const Pos& other) const {
     Pos p = *this;
     p.m_x += other.m_x;
@@ -232,7 +259,7 @@ public:
   }
 
   // speed in mm / sec, wid in mm
-  void Curve(double spdl, double spdr, double ms, double wid)
+  void Curve_old(double spdl, double spdr, double ms, double wid)
   {
     // Move in small steps to create smooth circular paths
     const double stepsize = 5.0;    // milliseconds
@@ -247,6 +274,32 @@ public:
       ms -= step;
       angle.add(rawangle * step);
       Move(speed * step);
+    }
+  }
+
+  void Curve(double spdl, double spdr, double ms, double wid)
+  {
+    const double meanspeed = (spdl + spdr) / 2000.0;  // mm/ms
+    if (spdl == spdr) {
+      Move(meanspeed * ms);  // Straight line, in direction robot is facing
+    }
+    else {
+      // get radius from robot center
+      const double fast = std::max(spdl, spdr);
+      const double slow = std::min(spdl, spdr);
+      const bool right = (spdl > spdr);
+      const double radius = wid * (fast / (fast - slow)) - wid / 2.0;
+
+      // get center of rotation
+      Point center = *this;
+      center.Move(right ? (angle + hpi) : (angle - hpi), radius);
+
+      // get angle of rotation, in radians
+      const double dist = (right ? meanspeed : -meanspeed) * ms;
+      const Angle alpha(dist / radius);
+
+      // rotate center of robot around center of rotation
+      Rotate(alpha, center);
     }
   }
 };
@@ -279,8 +332,12 @@ public:
     return m_last.Distance(ob);
   }
 
-  void SetLast(Point ob) {
+  void SetLast(const Point& ob) {
     m_last = ob;
+  }
+
+  bool Last() const {
+    return m_last.x() != 0.0 || m_last.y() != 0.0;
   }
 
 private:

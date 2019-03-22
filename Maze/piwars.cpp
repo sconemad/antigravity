@@ -7,6 +7,22 @@
 
 int main(int argc, char* argv[])
 {
+/*
+  Pos p(0.0, 0.0, 0.0);
+  double left = 20.0;   //  mm / sec
+  double right = 10.0;
+  double mean = (left + right) / 2.0;
+
+  double totaldist = 150 * 2.0 * PI;   // Full circle
+  double totaltime = totaldist / mean;
+
+  for (int c = 0; c < 8; ++c) {
+    p.Curve(left, right, 1000.0 * totaltime / 8.0, 100.0);
+  }
+
+  return 0;
+*/
+ 
   bool sim = false;
   int maxsteps = 100000;
   int test = 0;
@@ -16,11 +32,11 @@ int main(int argc, char* argv[])
   for (int a = 1; a < argc; ++a) {
     if (strcmp(argv[a], "-help") == 0) {
       std::cout << "Options:" << std::endl;
-      std::cout << "    -sim           : Run a marsmaze simulation instead of reality" << std::endl;
-      std::cout << "    -steps <n>     : Number of processing steps to do, default 100000" << std::endl;
-      std::cout << "    -maxspeed <f>  : Maximum speed of hardware, mm/s, default 0" << std::endl;
-      std::cout << "    -maxperc <f>   : Maximum speed percentage, default 100.0" << std::endl;
-      std::cout << "    -testrun <n>   : Run robot for specified time (ms), default 0 = no test" << std::endl;
+      std::cout << "    -sim            : Run a marsmaze simulation instead of reality" << std::endl;
+      std::cout << "    -steps <n>      : Number of processing steps to do, default 100000" << std::endl;
+      std::cout << "    -maxspeed <f>   : Maximum speed of hardware, mm/s, default 0" << std::endl;
+      std::cout << "    -maxperc <f>    : Maximum speed percentage, default 100.0" << std::endl;
+      std::cout << "    -testrun <n>    : Run robot for specified time (ms), default 0 = no test" << std::endl;
       return 0;
     }
     else if (strcmp(argv[a], "-sim") == 0) {
@@ -30,10 +46,6 @@ int main(int argc, char* argv[])
       if (++a < argc) maxsteps = std::stoi(argv[a]);
       else throw std::invalid_argument("No argument for -steps option");
     }
-    else if (strcmp(argv[a], "-testrun") == 0) {
-      if (++a < argc) test = std::stoi(argv[a]);
-      else throw std::invalid_argument("No argument for -testrun option");
-    }
     else if (strcmp(argv[a], "-maxspeed") == 0) {
       if (++a < argc) maxSpeed = std::stod(argv[a]);
       else throw std::invalid_argument("No argument for -maxspeed option");
@@ -41,6 +53,10 @@ int main(int argc, char* argv[])
     else if (strcmp(argv[a], "-maxperc") == 0) {
       if (++a < argc) maxPerc = std::stod(argv[a]);
       else throw std::invalid_argument("No argument for -maxperc option");
+    }
+    else if (strcmp(argv[a], "-testrun") == 0) {
+      if (++a < argc) test = std::stoi(argv[a]);
+      else throw std::invalid_argument("No argument for -testrun option");
     }
     else {
       std::cout << "Unknown option: " << argv[a] << std::endl;
