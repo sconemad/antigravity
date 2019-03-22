@@ -80,9 +80,9 @@ int main(int argc, char* argv[])
     int steps = 0;
 
     if (test != 0) {
-      R.Move(env.get(), true);
+      R.Move(env.get(), 100.0, 50.0, true);
       std::this_thread::sleep_for(std::chrono::milliseconds(test));
-      R.Move(env.get(), false);
+      R.Move(env.get(), 100.0, 100.0, false);
     }
     else {
       R.start(env.get());
