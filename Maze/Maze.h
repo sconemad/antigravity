@@ -64,7 +64,7 @@ public:
   virtual bool finished() { return false; }
 
   // Write result of simulation to bmp file
-  virtual void write(std::string filename, const std::vector<Point>& pvec) {}
+  virtual void write(std::string filename, const std::vector<Point>& pvec);
 };
 
 struct Corners
@@ -135,7 +135,7 @@ public:
   bool finished() override;
 
   // Write result of simulation to bmp file
-  void write(std::string filename, const std::vector<Point>& pvec) override;
+//  void write(std::string filename, const std::vector<Point>& pvec) override;
 };
 
 // 2018 Piwars maze
@@ -219,7 +219,7 @@ public:
     }
   }
   // Write result of run to bmp file
-  void write(std::string filename, const std::vector<Point>& pvec) override;
+//  void write(std::string filename, const std::vector<Point>& pvec) override;
 
 private:
   Comms comms;

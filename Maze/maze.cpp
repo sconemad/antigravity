@@ -228,7 +228,7 @@ bool Simulation::finished()
          !C.BR.CheckBoundary(width, height, 5.0) ||
          !C.BL.CheckBoundary(width, height, 5.0);
 }
-
+/*
 void Simulation::write(std::string filename, const std::vector<Point>& pvec)
 {
   // Write outline of robot
@@ -269,9 +269,10 @@ void Simulation::write(std::string filename, const std::vector<Point>& pvec)
 
   generateBitmapImage(area, area.at(0).size(), area.size(), filename.c_str());
 }
+*/
 
 #ifndef WIN32
-void Reality::write(std::string filename, const std::vector<Point>& pvec)
+void Environment::write(std::string filename, const std::vector<Point>& pvec)
 {
   int minx = std::numeric_limits<int>::max();
   int maxx = std::numeric_limits<int>::lowest();
@@ -294,7 +295,7 @@ void Reality::write(std::string filename, const std::vector<Point>& pvec)
 
   // Write obstacles
   for (auto ob : pvec) {
-    const int x = xmax - toint(ob.x()) - minx + margin;
+    const int x = toint(ob.x()) - minx + margin;
     const int y = toint(ob.y()) - miny + margin;
 
     for (int xx = x - 2; xx < x + 3; ++xx)
