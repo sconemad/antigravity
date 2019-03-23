@@ -25,14 +25,9 @@ class Drive :
         self.bot.loop.call_later(T, self.timer, [])
 
     def timer(self, f):
-        # Apply flip and speed factor settings to get target speeds
-        if self.flip:
-            tls = -self.trs / self.speedFactor
-            trs = -self.tls / self.speedFactor
-        else:
-            tls = self.tls / self.speedFactor
-            trs = self.trs / self.speedFactor
-        
+        tls = self.tls
+        trs = self.trs
+            
         # Save previous actual wheel speeds for comparison later
         pls = self.ls
         prs = self.rs
@@ -49,6 +44,7 @@ class Drive :
 
         # Limit deceleration to stop it falling over
         dlim = 0.03
+#        dlim = 1000.0
         if a < -dlim: 
             p = a / -dlim
             print("Limiting decel %f" % (p))
@@ -70,7 +66,7 @@ class Drive :
         self.bot.loop.call_later(T, self.timer, [])
         
     def updateMotorSpeeds(self, ls, rs):
-        print('Drive: Not implemented')
+        self.bot.logMsg('Drive: Not implemented')
 
     def stop(self):
         self.tls = 0.0
@@ -100,7 +96,7 @@ class Drive :
     def setDriveXY(self, x, y):
         'Set motor speeds based on X/Y joystick position'
         speed = math.sqrt(x*x + y*y)
-        angle = math.atan2(x, y)
+        angle = math.atan2(-x, y)
         
         ls = 0.0
         rs = 0.0
@@ -130,17 +126,6 @@ class Drive :
         self.tls = ls
         self.trs = rs
     
-    def setSpeedFactor(self, speedFactor):
-        self.speedFactor = speedFactor
-
-    def incSpeedFactor(self):
-        if (self.speedFactor < 5):
-            self.setSpeedFactor(self.speedFactor + 1)
-            
-    def decSpeedFactor(self):
-        if (self.speedFactor > 1):
-            self.setSpeedFactor(self.speedFactor - 1)
-
     def setBiasCorrection(self,bc):
         "Left/right drive bias; -tive is move left; 0.95 is turn right by driving RHS @ 95%"
         # 0 <= bc <= 1; +0.05 means bias by 5% to right, i.e turn right to correct it going left
@@ -151,9 +136,6 @@ class Drive :
         else:
             self.biasCorrection = 1-bc
         self.update()
-        
-    def setFlip(self, flip):
-        self.flip = flip
         
     def getMotorCurrent(self):
         c = self.md25.readCurrents()
@@ -178,17 +160,7 @@ class Drive :
             s = float(args[1])
             t = float(args[2])
             self.setDriveST(s,t)
-        elif cmd == 'setSpeedFactor': # setSpeedFactor <factor>
-            sf = int(args[1])
-            self.setSpeedFactor(sf)
-        elif cmd == 'setFlip': # setFlip <0|1>
-            flip = int(args[1])
-            if flip: self.setFlip(True)
-            else: self.setFlip(False)
         elif cmd == 'getVoltage': # getVoltage
             return self.getBatteryVoltage()
         elif cmd == 'getCurrent': # getCurrent
             return self.getMotorCurrent()
-        
-    speedFactor = 5
-    flip = False

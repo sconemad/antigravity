@@ -22,12 +22,16 @@ from Servo import Servo
 from CtrlServer import CtrlServer
 from JS import JS, JSCallback
 from Camera import Camera
-from Rainbow import Rainbow
+
+# Modules
 from Dummy import Dummy
+from Shutdown import Shutdown
+from Rainbow import Rainbow
 from Distance import Distance
 from Testline import Testline
 from Calibrate import Calibrate
 from Turtle import Turtle
+from Display import Display
 #from Maze import Maze
 #from Maze_deadreckoning import Maze2
 from Straightline import Straightline
@@ -37,10 +41,10 @@ class AntiGravity(Bot, JSCallback):
     def __init__(self):
         super().__init__()
         self.loop = asyncio.get_event_loop()
-        self.modulemode = "straightline" # Currently active module, see below
-        # TTD should really validate it's in self.modules
-        self.currentmode = "Manual / " + self.modulemode
-
+        self.voltage = 0
+        self.speedFactor = 5
+        self.flip = False
+        
         # Create the appropriate Drive class for this robot
         self.drive = 0
         try: self.drive = DriveMD25(self)
@@ -51,7 +55,6 @@ class AntiGravity(Bot, JSCallback):
         if self.drive == 0: self.drive == Drive(self)
         self.logMsg("Drive: %s" % (type(self.drive).__name__))
 
-        #self.dist = Echo(self)
         self.dist = Lidar(self)
         self.servo = Servo(self)
         self.ctrlServer = CtrlServer(self)
@@ -61,7 +64,11 @@ class AntiGravity(Bot, JSCallback):
         
         # Mode modules - launched by the 'x' (AKA SQUARE) button
         # Functions MUST implement a start() method
-        self.modules = {
+        self.modules = [
+            Dummy(self),
+            self.dist, # Lidar is also a module
+            Shutdown(self)
+        ]
 #            "rainbow": Rainbow(self),
 #            "distance": Distance(self),
 #            "testline": Testline(self),
@@ -69,32 +76,14 @@ class AntiGravity(Bot, JSCallback):
 #            "calibrate": Calibrate(self),
 #            "maze": Maze(self),
 #            "maze2": Maze2(self),
-            "dummy": Dummy(self)
-        }
-        self.modulesList = self.modules.items()
-        # Used by Turtle, Calibrate etc - global store so calibrate can update
-        self.turnCorrectionFactor=0.915
-        self.distCorrectionFactor=1
+
+        self.module = 0
+        self.display = Display(self)
         self.batTimer([])
         
     def __del__(self):
         self.logfile.close()
         
-    def next_module(self,auto=None):
-        if auto is not None:
-            self.logMsg("Finished Auto Module:" + self.modulemode)
-        try:
-            nm = self.modulesList.next()
-        except StopIteration:
-            self.logMsg("Orobous: Restarting module list")
-            self.modulesList = self.modules.items()
-            nm = self.modulesList.next()
-            pass
-        # Boilerplate
-        self.modulemode = nm[0]
-        self.currentmode = "Manual / " + self.modulemode
-        return nm[0]
-         
     def get_camera(self):
         return self.camera
 
@@ -110,10 +99,45 @@ class AntiGravity(Bot, JSCallback):
         self.loop.call_later(t, cb, [])
 
     def batTimer(self, args):
-        v = self.drive.getBatteryVoltage()
-        self.logMsg("Battery voltage: %0.1fv" % (v))
+        self.voltage = self.drive.getBatteryVoltage()
+        self.logMsg("Battery voltage: %0.1fv" % (self.voltage))
         self.setTimer(10, self.batTimer)
+
+    def getBatteryVoltage(self):
+        return self.voltage
+
+    def getModule(self):
+        return self.modules[self.module]
+
+    def startModule(self):
+        mod = self.getModule()
+        self.logMsg("Starting module: %s" % (mod.name))
+        mod.start()
+
+    def stopModule(self):
+        mod = self.getModule()
+        self.logMsg("Stopping module: %s" % (mod.name))
+        mod.stop()
+
+    def nextModule(self):
+        self.module = self.module + 1
+        if self.module >= len(self.modules): self.module = 0
+        self.logMsg("Selected module: %s" % (self.getModule().name)) 
+
+    def prevModule(self):
+        self.module = self.module - 1
+        if self.module < 0: self.module = len(self.modules) - 1
+        self.logMsg("Selected module: %s" % (self.getModule().name)) 
         
+    def manualDrive(self, x, y):
+        if self.flip:
+            rx = x / self.speedFactor
+            ry = -y / self.speedFactor
+        else:
+            rx = x / self.speedFactor
+            ry = y / self.speedFactor
+        self.drive.setDriveXY(rx, ry)
+            
     def leftStick(self, x, y):
         "Notification of a gamepad left analog stick event"
         self.logMsg('LEFT_STICK: %.3f %.3f' % (x, y))
@@ -122,12 +146,12 @@ class AntiGravity(Bot, JSCallback):
     def rightStick(self, x, y):
         "Notification of a gamepad right analog stick event"
         self.logMsg('RIGHT_STICK: %.3f %.3f' % (x, y))
-        self.drive.setDriveXY(x, y)
-    
+        self.manualDrive(x,y)
+
     def dpadEvent(self, x, y):
         "Notification of a gamepad directional pad event"
         self.logMsg('DPAD: %.3f %.3f' % (x, y))
-        self.drive.setDriveXY(x, y)
+        self.manualDrive(x, y)
 
     def buttonEvent(self, b, down):
         "Notification of a gamepad button event"
@@ -136,22 +160,20 @@ class AntiGravity(Bot, JSCallback):
         else:
             self.logMsg("BUTTON %s up" % (b))
         if (down): return
-        if (b == 'tl'): self.drive.setFlip(False)
-        if (b == 'tl2'): self.drive.setFlip(True)
-        if (b == 'tr'): self.drive.decSpeedFactor()
-        if (b == 'tr2'): self.drive.incSpeedFactor()
+        if (b == 'tl'): self.flip = False
+        if (b == 'tl2'): self.flip = True
+        if (b == 'tr'):
+            if (self.speedFactor > 1):
+                self.speedFactor = self.speedFactor - 1
+        if (b == 'tr2'):
+            if (self.speedFactor < 5):
+                self.speedFactor = self.speedFactor + 1
+
         if (b == 'thumbl'): print("nothing")
         if (b == 'thumbr'): self.drive.halt()
-        if (b == 'x'):  # AKA square
-            self.currentmode = "Auto : " + self.modulemode
-            module = self.modules.get(self.modulemode,None)
-            self.logMsg("Starting Auto Module:" + self.modulemode)
-            module.start()
-            self.logMsg("(Auto module started; control returned to main)")
-        if (b == "y"): # AKA triangle
-            self.logMsg("Selecting next module:" + self.next_module())
-        if (b == 'select'):
-            self.quit()
+        if (b == 'x'): self.startModule() # AKA square
+        if (b == "y"): self.nextModule() # AKA triangle
+        if (b == 'select'): self.quit()
 
     def ctrlCmd(self, args):
         cmd = args[0]
@@ -165,4 +187,4 @@ class AntiGravity(Bot, JSCallback):
         elif cmd == 'quit':
             self.quit()
         elif cmd == 'nextModule':
-            return self.next_module()
+            return self.nextModule()

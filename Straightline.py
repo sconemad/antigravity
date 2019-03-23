@@ -21,7 +21,6 @@ class Straightline(threading.Thread):
         dist=735 # 720
         self.robot.logMsg(" 1st run: Speed=1.0, %dcm, bias 0" % dist)
         
-        self.robot.drive.setSpeedFactor(1.0)
         self.robot.update()        
         self.robot.turtle.forwardDist(dist)
 

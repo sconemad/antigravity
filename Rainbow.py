@@ -27,8 +27,6 @@ class Rainbow(threading.Thread):
                         (blue_lower_range,blue_upper_range),
                         (yellow_lower_range,yellow_upper_range),
                         (green_lower_range,green_upper_range)]
-        self.robot.drive.setSpeedFactor(5.0)
-        self.robot.drive.setFlip(0)
 
     def run(self):
         for colour in self.colours:

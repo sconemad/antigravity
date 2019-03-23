@@ -9,8 +9,9 @@ import RPi.GPIO as GPIO
 import board
 import busio
 import adafruit_vl53l0x
+from Module import Module
 
-class Lidar:
+class Lidar(Module):
 
     # Measurement timing budget, see:
     # https://github.com/pololu/vl53l0x-arduino/blob/master/examples/Single/Single.ino
@@ -26,6 +27,7 @@ class Lidar:
     I2C_MUX_CENTRE = 6
     
     def __init__(self, bot):
+        super().__init__(bot, "Distance")
         self.bot = bot
         GPIO.setmode(GPIO.BCM)
         self.i2c = busio.I2C(board.SCL, board.SDA)
@@ -42,8 +44,6 @@ class Lidar:
         self._select(self.I2C_MUX_RIGHT)
         self.vl53_right = adafruit_vl53l0x.VL53L0X(self.i2c)
         self.vl53_right.measurement_timing_budget = self.MTB
-
-        self.distTimer([])
 
     def __del__(self):
         GPIO.cleanup()
@@ -72,13 +72,12 @@ class Lidar:
             self.bot.logMsg("Failed")
         return r
 
-    def distTimer(self, args):
+    def getStatus(self):
         l = self.getDistance(self.DIST_LEFT)
         c = self.getDistance(self.DIST_CENTRE)
         r = self.getDistance(self.DIST_RIGHT)
-        self.bot.logMsg("Dist: %d %d %d" % (l,c,r))
-        self.bot.setTimer(10, self.distTimer)
-    
+        return "%-4d  %-4d  %4d" % (l,c,r)
+        
     def ctrlCmd(self, args):
         cmd = args[0]
         if cmd == 'get':

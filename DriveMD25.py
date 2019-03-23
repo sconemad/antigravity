@@ -19,7 +19,7 @@ class DriveMD25(Drive):
         l = int(128+(127*-ls))
         r = int(128+(127*-rs))
         try:
-            self.md25.turn(l,r)
+            self.md25.turn(r,l)
         except:
             self.bot.logMsg("Went wrong")
 
