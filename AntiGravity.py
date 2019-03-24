@@ -146,12 +146,12 @@ class AntiGravity(Bot, JSCallback):
     def rightStick(self, x, y):
         "Notification of a gamepad right analog stick event"
         self.logMsg('RIGHT_STICK: %.3f %.3f' % (x, y))
-        self.manualDrive(x,y)
+        self.manualDrive(x, y)
 
     def dpadEvent(self, x, y):
         "Notification of a gamepad directional pad event"
         self.logMsg('DPAD: %.3f %.3f' % (x, y))
-        self.manualDrive(x, y)
+        self.manualDrive(x/2, y)
 
     def buttonEvent(self, b, down):
         "Notification of a gamepad button event"
@@ -160,14 +160,20 @@ class AntiGravity(Bot, JSCallback):
         else:
             self.logMsg("BUTTON %s up" % (b))
         if (down): return
-        if (b == 'tl'): self.flip = False
-        if (b == 'tl2'): self.flip = True
+        if (b == 'tl'):
+            self.flip = False
+            self.display.showFlip(self.flip)
+        if (b == 'tl2'):
+            self.flip = True
+            self.display.showFlip(self.flip)
         if (b == 'tr'):
             if (self.speedFactor > 1):
                 self.speedFactor = self.speedFactor - 1
+            self.display.showSpeedFactor(self.speedFactor)
         if (b == 'tr2'):
             if (self.speedFactor < 5):
                 self.speedFactor = self.speedFactor + 1
+            self.display.showSpeedFactor(self.speedFactor)
 
         if (b == 'thumbl'): print("nothing")
         if (b == 'thumbr'): self.drive.halt()
