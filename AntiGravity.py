@@ -42,7 +42,7 @@ class AntiGravity(Bot, JSCallback):
         super().__init__()
         self.loop = asyncio.get_event_loop()
         self.voltage = 0
-        self.speedFactor = 5
+        self.speedFactor = 3
         self.flip = False
         
         # Create the appropriate Drive class for this robot
@@ -130,12 +130,16 @@ class AntiGravity(Bot, JSCallback):
         self.logMsg("Selected module: %s" % (self.getModule().name)) 
         
     def manualDrive(self, x, y):
-        if self.flip:
-            rx = x / self.speedFactor
-            ry = -y / self.speedFactor
-        else:
-            rx = x / self.speedFactor
-            ry = y / self.speedFactor
+        m = 0
+        if self.speedFactor == 1: m = 0.1
+        elif self.speedFactor == 2: m = 0.2
+        elif self.speedFactor == 3: m = 0.3
+        elif self.speedFactor == 4: m = 0.4
+        elif self.speedFactor == 5: m = 0.5
+        else: m = 1.0
+        rx = x * m
+        if self.flip: ry = -y * m
+        else: ry = y * m
         self.drive.setDriveXY(rx, ry)
             
     def leftStick(self, x, y):
@@ -167,12 +171,12 @@ class AntiGravity(Bot, JSCallback):
             self.flip = True
             self.display.showFlip(self.flip)
         if (b == 'tr'):
-            if (self.speedFactor > 1):
-                self.speedFactor = self.speedFactor - 1
+            if (self.speedFactor < 6):
+                self.speedFactor = self.speedFactor + 1
             self.display.showSpeedFactor(self.speedFactor)
         if (b == 'tr2'):
-            if (self.speedFactor < 5):
-                self.speedFactor = self.speedFactor + 1
+            if (self.speedFactor > 1):
+                self.speedFactor = self.speedFactor - 1
             self.display.showSpeedFactor(self.speedFactor)
 
         if (b == 'thumbl'): print("nothing")

@@ -57,12 +57,12 @@ class Display:
 
         if self.graph == 1:
             # Do the speed factor
-            backlight.graph_set_led_state(5, flash and self.speedFactor < 6)
-            backlight.graph_set_led_state(4, flash and self.speedFactor < 5)
-            backlight.graph_set_led_state(3, flash and self.speedFactor < 4)
-            backlight.graph_set_led_state(2, flash and self.speedFactor < 3)
-            backlight.graph_set_led_state(1, flash and self.speedFactor < 2)
-            backlight.graph_set_led_state(0, flash and self.speedFactor < 1)
+            backlight.graph_set_led_state(5, flash and self.speedFactor > 0)
+            backlight.graph_set_led_state(4, flash and self.speedFactor > 1)
+            backlight.graph_set_led_state(3, flash and self.speedFactor > 2)
+            backlight.graph_set_led_state(2, flash and self.speedFactor > 3)
+            backlight.graph_set_led_state(1, flash and self.speedFactor > 4)
+            backlight.graph_set_led_state(0, flash and self.speedFactor > 5)
         elif self.graph == 2:
             # Do the flip
             if self.flip:
