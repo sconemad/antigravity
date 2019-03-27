@@ -3,68 +3,96 @@ import numpy as np
 import time
 import math
 
-blue_lower_range = np.array([90,70,70])
-blue_upper_range = np.array([120,255,255])
+blue_lower_range = np.array([100,70,70])
+blue_upper_range = np.array([135,255,255])
 
-red_lower_range = np.array([0,120,120])
-red_upper_range = np.array([10,255,255])
+red1_lower_range = np.array([0,70,70])
+red1_upper_range = np.array([10,255,255])
+# Red is either side of 0 degrees - we could normalize this?
+red2_lower_range = np.array([170,70,70])
+red2_upper_range = np.array([180,255,255])
 
-green_lower_range = np.array([40,120,120])
-green_upper_range = np.array([70,255,255])
+green_lower_range = np.array([45,120,120])
+green_upper_range = np.array([75,255,255])
 
-yellow_lower_range = np.array([28,180,180])
-yellow_upper_range = np.array([28,255,255])
+yellow_lower_range = np.array([25,160,160])
+yellow_upper_range = np.array([35,255,255])
 
 
 class Rainbow(threading.Thread):
 
     def __init__(self,robot):
-
         threading.Thread.__init__(self)
         self.robot = robot
-        self.camera = robot.get_camera() 
-        self.colours = [(red_lower_range,red_upper_range),
-                        (blue_lower_range,blue_upper_range),
-                        (yellow_lower_range,yellow_upper_range),
-                        (green_lower_range,green_upper_range)]
+        self.camera = robot.get_camera()
+        self.dist = robot.dist
+        # Create list of colours to visit - RBYG
+        self.colours = [(red1_lower_range, red1_upper_range, red2_lower_range, red2_upper_range),
+                        (blue_lower_range, blue_upper_range, np.empty, np.empty),
+                        (yellow_lower_range, yellow_upper_range, np.empty, np.empty),
+                        (green_lower_range, green_upper_range, np.empty, np.empty)]
 
     def run(self):
+        self.camera.start()
+        while not self.camera.ready:
+            time.sleep(0.5)
+
         for colour in self.colours:
-            found = False
-            while not found:
-                self.robot.drive.setSpeedFactor(5.0)
-                self.robot.drive.setDrive(1,(math.pi / 2))
-                found = self.camera.find_colour(colour[0],colour[1])
+            # Initial distance
+            self.start_distance = 9999
+            while self.start_distance == 9999:
+                self.start_distance = dist.getDistance(dist.DIST_CENTRE)
+                time.sleep(0.2)
+
+            # Turn and check
+            self.robot.drive.setDriveLR(0.1, -0.1)
+            while not self.camera.find_colour(colour[0], colour[1], colour[2], colour[3]):
+                time.sleep(0.02)
             self.robot.drive.stop()
-            self.robot.drive.setSpeedFactor(5.0)
-            self.robot.drive.setDrive(1.0,math.pi)
-            time.sleep(2.2)
-            self.robot.drive.setSpeedFactor(5.0)
-            self.robot.drive.setDrive(1.0,0)
-            time.sleep(2.2)
+
+            # Move forward until range ~ 60
+            self.robot.drive.setDriveLR(0.1, 0.1)
+            self.current_distance = self.start_distance
+            while self.current_distance > 60:
+                self.current_distance = dist.getDistance(dist.DIST_CENTRE)
+                time.sleep(0.02)
             self.robot.drive.stop()
-                
+
+            # Move back until range is ~ start_distance
+            self.robot.drive.setDriveLR(-0.1, -0.1)
+            while self.current_distance < self.start_distance:
+                self.current_distance = dist.getDistance(dist.DIST_CENTRE)
+                time.sleep(0.02)
+            self.robot.drive.stop()
 
         self.robot.drive.stop()
+
+    def stop(self):
+        self.robot.drive.stop()
+        self.camera.stop()
 
 if __name__ == "__main__":
     from Camera import Camera
     camera = Camera()
-    time.sleep(2)
-    found = False
-    self.robot.drive.flip(0)
-
-    while not found:
-        found = camera.find_colour(red_lower_range,red_upper_range)
+    while not self.camera.ready:
         time.sleep(0.5)
-    self.robot.drive.setSpeedFactor(5.0)
-    self.robot.drive.setDrive(1.0,math.pi)
-    time.sleep(1.7)
-    self.robot.drive.setSpeedFactor(5.0)
-    self.robot.drive.setDrive(1.0,0)
-    time.sleep(1.7)
-    self.robot.drive.stop()
+
+    colours = [(red1_lower_range, red1_upper_range, red2_lower_range, red2_upper_range),
+               (blue_lower_range, blue_upper_range, np.empty, np.empty),
+               (yellow_lower_range, yellow_upper_range, np.empty, np.empty),
+               (green_lower_range, green_upper_range, np.empty, np.empty)]
+    while True:
+        for colour in colours:
+            if self.camera.find_colour(colour[0], colour[1], colour[2], colour[3]):
+                index = colours.index(colour)
+                if index == 0:
+                    print("Found red")
+                else if index == 1:
+                    print("Found blue")
+                else if index == 2:
+                    print("Found yellow")
+                else if index == 3:
+                    print("Found green")
+        time.sleep(0.25)
 
     camera.stop()
-
-
