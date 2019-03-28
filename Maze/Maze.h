@@ -202,7 +202,7 @@ public:
 class Reality : public Environment
 {
 public:
-  // speed from 0.0 - 1.0, max speed is about 1100 mm/sec
+  // speed from 0.0 - 1.0, max speed is about 1350 mm/sec
   // arguments are in mm/sec too
   void setSpeed(double left, double right) override
   { 
