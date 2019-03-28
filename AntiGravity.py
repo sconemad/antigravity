@@ -60,14 +60,15 @@ class AntiGravity(Bot, JSCallback):
         self.ctrlServer = CtrlServer(self)
         self.turtle = Turtle(self)
         self.js = JS(self)
-#        self.camera = Camera()
+        self.camera = Camera()
         
         # Mode modules - launched by the 'x' (AKA SQUARE) button
         # Functions MUST implement a start() method
         self.modules = [
             Dummy(self),
             self.dist, # Lidar is also a module
-            Shutdown(self)
+            Shutdown(self),
+            Rainbow(self)
         ]
 #            "rainbow": Rainbow(self),
 #            "distance": Distance(self),
