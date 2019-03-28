@@ -69,15 +69,11 @@ void Robot::Move(Environment* M, double left, double right, bool move) {
 void Robot::threadFunction(Environment* env)
 {
   static TimePoint time = Clock::now();
-  //bool verify = false;
 
   while (true) {
-    size_t snum = 0;
-    while (snum < sensors.size())
+    for (Sensor& s : sensors)
     {
       if (cancelThread) return;
-
-      Sensor& s = sensors.at(snum);
 
       TimePoint tm = Clock::now();
       auto d = tm - time;
@@ -103,26 +99,11 @@ void Robot::threadFunction(Environment* env)
         }
 
         if (distance > 1500.0) {
-          ++snum;
           continue;
         }
 
-        // Make sure that the position is taken at the best estimate of the
-        // measurement time, if that's a significant amount
-        tm = Clock::now();
-        d = tm - time;
-        musec = (double)std::chrono::duration_cast<std::chrono::microseconds>(d).count();
-
-        // Move half the distance
-        Move(env, musec / 2.0);
-        env->MoveRobot(musec / 2.0);
-
         // Get location of sensor
         Pos p = getRobotPos();
-
-        // Move the rest
-        Move(env, musec / 2.0);
-        env->MoveRobot(musec / 2.0);
 
         // Now process
         s.Process(p);
@@ -167,7 +148,6 @@ void Robot::threadFunction(Environment* env)
           continue;
         } */
       }
-      ++snum;
     }
   }
 }
