@@ -15,6 +15,8 @@ static double minwalldist = std::numeric_limits<double>::max();
 static const unsigned int MaxObstacles = 100;
 static const unsigned int MaxDrobstacles = 6;
 
+double Robot::Obstacle::steepness = 100.0;
+
 Robot::Robot(Environment* env) :
   robotposition(0.0, 0.0, env->getInitialAngle())
 {
@@ -77,7 +79,7 @@ void Robot::threadFunction(Environment* env)
 
       Sensor& s = sensors.at(snum);
 
-      const TimePoint tm = Clock::now();
+      TimePoint tm = Clock::now();
       auto d = tm - time;
       double musec = (double)std::chrono::duration_cast<std::chrono::microseconds>(d).count();
       if (musec < 20000) {
@@ -105,8 +107,24 @@ void Robot::threadFunction(Environment* env)
           continue;
         }
 
+        // Make sure that the position is taken at the best estimate of the
+        // measurement time, if that's a significant amount
+        tm = Clock::now();
+        d = tm - time;
+        musec = (double)std::chrono::duration_cast<std::chrono::microseconds>(d).count();
+
+        // Move half the distance
+        Move(env, musec / 2.0);
+        env->MoveRobot(musec / 2.0);
+
         // Get location of sensor
         Pos p = getRobotPos();
+
+        // Move the rest
+        Move(env, musec / 2.0);
+        env->MoveRobot(musec / 2.0);
+
+        // Now process
         s.Process(p);
         // Get location of hit
         p.Move(s.getAngle(), distance);

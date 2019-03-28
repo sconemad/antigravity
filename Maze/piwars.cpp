@@ -28,6 +28,10 @@ int main(int argc, char* argv[])
   int test = 0;
   double maxSpeed = 0.0;
   double maxPerc = 100.0;
+  int offset = 60;
+  int plandist = 100;
+  double steep = 100.0;
+  double angleFac = 0.25;
 
   for (int a = 1; a < argc; ++a) {
     if (strcmp(argv[a], "-help") == 0) {
@@ -37,6 +41,10 @@ int main(int argc, char* argv[])
       std::cout << "    -maxspeed <f>   : Maximum speed of hardware, mm/s, default 0" << std::endl;
       std::cout << "    -maxperc <f>    : Maximum speed percentage, default 100.0" << std::endl;
       std::cout << "    -testrun <n>    : Run robot for specified time (ms), default 0 = no test" << std::endl;
+      std::cout << "    -offset <n>     : Offset for center of planning, default = 60mm" << std::endl;
+      std::cout << "    -plandist <n>   : Distance for planning, default 100cm" << std::endl;
+      std::cout << "    -steepness <n>  : steepness, default 100" << std::endl;
+      std::cout << "    -anglefac <n>   : Angle change factor, default 0.25" << std::endl;
       return 0;
     }
     else if (strcmp(argv[a], "-sim") == 0) {
@@ -58,6 +66,22 @@ int main(int argc, char* argv[])
       if (++a < argc) test = std::stoi(argv[a]);
       else throw std::invalid_argument("No argument for -testrun option");
     }
+    else if (strcmp(argv[a], "-offset") == 0) {
+      if (++a < argc) offset = std::stoi(argv[a]);
+      else throw std::invalid_argument("No argument for -offset option");
+    }
+    else if (strcmp(argv[a], "-plandist") == 0) {
+      if (++a < argc) plandist = std::stoi(argv[a]);
+      else throw std::invalid_argument("No argument for -plandist option");
+    }
+    else if (strcmp(argv[a], "-steepness") == 0) {
+      if (++a < argc) steep = std::stoi(argv[a]);
+      else throw std::invalid_argument("No argument for -plandist option");
+    }
+    else if (strcmp(argv[a], "-anglefac") == 0) {
+      if (++a < argc) angleFac = std::stod(argv[a]);
+      else throw std::invalid_argument("No argument for -anglefac option");
+    }
     else {
       std::cout << "Unknown option: " << argv[a] << std::endl;
     }
@@ -70,6 +94,10 @@ int main(int argc, char* argv[])
 #endif
 
   Robot2 R(env.get());
+  R.SetOffset(offset);
+  R.SetSearchDistance(plandist);
+  R.SetSteepness(steep);
+  R.SetAngleFactor(angleFac);
 
   R.initiate(env.get());                        // Define dimensions and sensors (add maxspeed?)
   R.SetMaxSpeed(maxSpeed * maxPerc / 100.0);    // mm/s , speed limit
