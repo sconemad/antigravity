@@ -114,6 +114,7 @@ int main(int argc, char* argv[])
   R.SetMaxSpeed(maxSpeed * maxPerc / 100.0);    // mm/s , speed limit
   env->setMaxSpeed(maxSpeed);                   // mm/s , maximum speed possible
   R.SetSpeed(left, right);
+  env->setSpeed(left, right);
 
   try {
     int steps = 0;
@@ -132,6 +133,7 @@ int main(int argc, char* argv[])
       }
       else {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::cout << std::endl;
       }
     }
   }
