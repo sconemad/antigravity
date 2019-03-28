@@ -69,7 +69,7 @@ void Robot::Move(Environment* M, double left, double right, bool move) {
 void Robot::threadFunction(Environment* env)
 {
   static TimePoint time = Clock::now();
-  bool verify = false;
+  //bool verify = false;
 
   while (true) {
     size_t snum = 0;
@@ -129,7 +129,11 @@ void Robot::threadFunction(Environment* env)
         // Get location of hit
         p.Move(s.getAngle(), distance);
 
-        if (!s.Last()) {
+        s.SetLast(p);
+        std::lock_guard<std::mutex> lg(obstacleMutex);
+        obstacles.push_back(Obstacle(p));
+
+/*      if (!s.Last()) {
           // First call for this sensor, make sure to add obstacle
           // Could skip this. First measurement will then be verified
           // The choice is between safer and faster
@@ -161,7 +165,7 @@ void Robot::threadFunction(Environment* env)
           // Too far, redo sensor to verify if measurement is correct
           verify = true;
           continue;
-        }
+        } */
       }
       ++snum;
     }
