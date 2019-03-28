@@ -38,13 +38,10 @@ void Robot::Move(Environment* env, double musec)
     P.Curve(speedl, speedr, musec / 1000.0, turnWidth());
 
     setRobotPos(P);
-
-    // Move in maze (sim or real)
-    env->setSpeed(speedl, speedr);
   }
 
   // Leave drop obstacles
-  Pos me = getRobotPos();
+  Pos me = P;
   me.Move(pi, 200.0);
   me.Move(hpi, wid / 2.0);
 

@@ -25,13 +25,13 @@ int main(int argc, char* argv[])
  
   bool sim = false;
   int maxsteps = 100000;
-  int test = 0;
   double maxSpeed = 0.0;
   double maxPerc = 100.0;
   int offset = 60;
   int plandist = 100;
   double steep = 100.0;
   double angleFac = 0.25;
+  bool correct = true;
 
   for (int a = 1; a < argc; ++a) {
     if (strcmp(argv[a], "-help") == 0) {
@@ -40,11 +40,11 @@ int main(int argc, char* argv[])
       std::cout << "    -steps <n>      : Number of processing steps to do, default 100000" << std::endl;
       std::cout << "    -maxspeed <f>   : Maximum speed of hardware, mm/s, default 0" << std::endl;
       std::cout << "    -maxperc <f>    : Maximum speed percentage, default 100.0" << std::endl;
-      std::cout << "    -testrun <n>    : Run robot for specified time (ms), default 0 = no test" << std::endl;
       std::cout << "    -offset <n>     : Offset for center of planning, default = 60mm" << std::endl;
       std::cout << "    -plandist <n>   : Distance for planning, default 100cm" << std::endl;
       std::cout << "    -steepness <n>  : steepness, default 100" << std::endl;
       std::cout << "    -anglefac <n>   : Angle change factor, default 0.25" << std::endl;
+      std::cout << "    -GoStraight     : Just go in straight line, step = 50ms" << std::endl;
       return 0;
     }
     else if (strcmp(argv[a], "-sim") == 0) {
@@ -62,10 +62,6 @@ int main(int argc, char* argv[])
       if (++a < argc) maxPerc = std::stod(argv[a]);
       else throw std::invalid_argument("No argument for -maxperc option");
     }
-    else if (strcmp(argv[a], "-testrun") == 0) {
-      if (++a < argc) test = std::stoi(argv[a]);
-      else throw std::invalid_argument("No argument for -testrun option");
-    }
     else if (strcmp(argv[a], "-offset") == 0) {
       if (++a < argc) offset = std::stoi(argv[a]);
       else throw std::invalid_argument("No argument for -offset option");
@@ -81,6 +77,9 @@ int main(int argc, char* argv[])
     else if (strcmp(argv[a], "-anglefac") == 0) {
       if (++a < argc) angleFac = std::stod(argv[a]);
       else throw std::invalid_argument("No argument for -anglefac option");
+    }
+    else if (strcmp(argv[a], "-GoStraight") == 0) {
+      correct = false;
     }
     else {
       std::cout << "Unknown option: " << argv[a] << std::endl;
@@ -107,22 +106,20 @@ int main(int argc, char* argv[])
   try {
     int steps = 0;
 
-    if (test != 0) {
-      R.Move(env.get(), 100.0, 50.0, true);
-      std::this_thread::sleep_for(std::chrono::milliseconds(test));
-      R.Move(env.get(), 100.0, 100.0, false);
-    }
-    else {
-      R.start(env.get());
+    R.start(env.get());
 
-      while (++steps <= maxsteps && !R.Stopped() && !env->finished()) {
+    while (++steps <= maxsteps && !R.Stopped() && !env->finished()) {
 
-        if (env->crashed()) {
-          std::cout << "Crash" << std::endl;
-          break;
-        }
-        std::cout << "Step " << steps << " - ";
+      if (env->crashed()) {
+        std::cout << "Crash" << std::endl;
+        break;
+      }
+      std::cout << "Step " << steps << " - ";
+      if (correct) {
         R.Correct(env.get());
+      }
+      else {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
       }
     }
   }
