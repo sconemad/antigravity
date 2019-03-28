@@ -16,10 +16,12 @@ protected:
   class Obstacle : public Point
   {
   public:
+    static double steepness;
+
     explicit Obstacle(const Point& p) : Point(p) {}
 
     static double height(double distance) {
-      return pow(2.0, -distance / 100.0);
+      return pow(2.0, -distance / steepness);
     }
 
     double Value(const Point& p) const {
@@ -59,9 +61,10 @@ protected:
   double maxspeed = 0.0;
   double speedl = 0.0;  // mm/sec
   double speedr = 0.0;
+  double angleFactor = 0.25;
 
-  const int searchdist = 100; // radius, cm (40 works)
-  const int offset = 60;      // centre location, mm (40 works)
+  int searchdist = 100; // radius, cm (40 works)
+  int offset = 60;      // centre location, mm (40 works)
 
   std::vector< Point > plotpath;
 
@@ -105,11 +108,27 @@ public:
     speedr = right * maxspeed;
   }
 
+  void SetOffset(int mm) {
+    offset = mm;
+  }
+
+  void SetSearchDistance(int cm) {
+    searchdist = cm;
+  }
+
+  void SetSteepness(double s) {
+    Obstacle::steepness = s;
+  }
+
+  void SetAngleFactor(double f) {
+    angleFactor = f;
+  }
+
   // Input is double, as this could be more than +/- pi, but will
   // be divided for the direction change
   void AdjustSpeed(double a) {
 
-    Angle diff(a / 4.0);
+    Angle diff(a * angleFactor);
 
     std::lock_guard<std::mutex> lg(speedMutex);
     Angle2Speed(diff, maxspeed, 50, turnWidth(), speedl, speedr);
