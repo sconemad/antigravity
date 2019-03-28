@@ -87,11 +87,11 @@ if __name__ == "__main__":
                 index = colours.index(colour)
                 if index == 0:
                     print("Found red")
-                else if index == 1:
+                elif index == 1:
                     print("Found blue")
-                else if index == 2:
+                elif index == 2:
                     print("Found yellow")
-                else if index == 3:
+                elif index == 3:
                     print("Found green")
         time.sleep(0.25)
 
