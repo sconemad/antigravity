@@ -27,6 +27,8 @@ int main(int argc, char* argv[])
   int maxsteps = 100000;
   double maxSpeed = 0.0;
   double maxPerc = 100.0;
+  double left = 1.0;
+  double right = 1.0;
   int offset = 60;
   int plandist = 100;
   double steep = 100.0;
@@ -45,6 +47,8 @@ int main(int argc, char* argv[])
       std::cout << "    -steepness <n>  : steepness, default 100" << std::endl;
       std::cout << "    -anglefac <n>   : Angle change factor, default 0.25" << std::endl;
       std::cout << "    -GoStraight     : Just go in straight line, step = 50ms" << std::endl;
+      std::cout << "    -Left <n>       : Start speed left, default 1.0" << std::endl;
+      std::cout << "    -Right <n>      : Start speed right, default 1.0" << std::endl;
       return 0;
     }
     else if (strcmp(argv[a], "-sim") == 0) {
@@ -81,6 +85,14 @@ int main(int argc, char* argv[])
     else if (strcmp(argv[a], "-GoStraight") == 0) {
       correct = false;
     }
+    else if (strcmp(argv[a], "-Left") == 0) {
+      if (++a < argc) left = std::stod(argv[a]);
+      else throw std::invalid_argument("No argument for -Left option");
+    }
+    else if (strcmp(argv[a], "-Right") == 0) {
+      if (++a < argc) right = std::stod(argv[a]);
+      else throw std::invalid_argument("No argument for -Right option");
+    }
     else {
       std::cout << "Unknown option: " << argv[a] << std::endl;
     }
@@ -101,7 +113,7 @@ int main(int argc, char* argv[])
   R.initiate(env.get());                        // Define dimensions and sensors (add maxspeed?)
   R.SetMaxSpeed(maxSpeed * maxPerc / 100.0);    // mm/s , speed limit
   env->setMaxSpeed(maxSpeed);                   // mm/s , maximum speed possible
-  R.AdjustSpeed(Angle(0.0));
+  R.SetSpeed(left, right);
 
   try {
     int steps = 0;
