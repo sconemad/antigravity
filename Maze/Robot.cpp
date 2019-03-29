@@ -58,11 +58,6 @@ void Robot::Move(Environment* env, double musec)
   }
 }
 
-void Robot::Move(Environment* M, double left, double right, bool move) {
-  if (move) SetSpeed(left, right);
-  else SetSpeed(0.0, 0.0);
-}
-
 void Robot::threadFunction(Environment* env)
 {
   static TimePoint time = Clock::now();
@@ -342,7 +337,7 @@ const std::vector<Point> Robot::GetObstacles() const
   std::vector<Point> vec;
   std::lock_guard<std::mutex> lg(obstacleMutex);
 
-  vec.reserve(obstacles.size() + drobstacles.size() + plotpath.size());
+  vec.reserve(obstacles.size() + drobstacles.size() + plotpath.size() + 1);
 
   for (const Obstacle& ob : obstacles) {
     vec.emplace_back(ob);
@@ -352,13 +347,14 @@ const std::vector<Point> Robot::GetObstacles() const
   }
 
   Pos C = getRobotPos();
+  vec.emplace_back(C);
+  C.Move(offset);
   C -= Point(searchdist * 10, searchdist * 10);
 
   for (const Point& p : plotpath) {
     Point rp = p;
     rp *= 10.0;
     rp += C;
-    rp.Move(C.getAngle(), offset);
     vec.emplace_back(rp);
   }
 
