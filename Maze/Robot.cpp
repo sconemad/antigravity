@@ -150,20 +150,46 @@ void Robot::threadFunction(Environment* env)
 
 struct Node
 {
-  float maxheight = std::numeric_limits<float>::max();  // max height of path
-  float height = std::numeric_limits<float>::max();
+  float maxheight = std::numeric_limits<float>::max();  // max height of path to this node
+  float height = std::numeric_limits<float>::max();     // height at this node
   float pathlen = std::numeric_limits<float>::max();
+  //short mx, my;
   short px = -1, py = -1; // previous node
   bool destination = false;
 
+  //void setLoc(short x, short y) {
+  //  mx = x;
+  //  my = y;
+  //}
+
+  bool CheckBestIn(short mx, short my, const Vector2D<Node>& nvec) {
+    assert(heightCalculated());
+    bool change = false;
+    for (short x = mx - 1; x <= mx + 1; ++x) {
+      if (x >= 0 && x < nvec.xsize()) {
+        for (short y = my - 1; y <= my + 1; ++y) {
+          if (y >= 0 && y < nvec.ysize() && (x != mx || y != my)) {
+            const Node& other = nvec.Get(x, y);
+            if (bettervia(other)) {
+              Connect(other, x, y);
+              change = true;
+            }
+          }
+        }
+      }
+    }
+    return change;
+  }
+
   bool heightCalculated() const {
-    return height != std::numeric_limits<float>::max();
+    return height < std::numeric_limits<float>::max();
   }
 
   // Connecting via N is better than my existing connection
   bool bettervia(const Node& N) const {
-    return maxheight > std::max(height, N.maxheight) ||
-           (maxheight == N.maxheight && N.pathlen + height < pathlen);
+    const float Nmax = std::max(height, N.maxheight);
+
+    return maxheight > Nmax || (maxheight == Nmax && N.pathlen + height < pathlen);
   }
 
   void Connect(const Node& N, int x, int y) {
@@ -174,8 +200,7 @@ struct Node
   }
 
   bool BetterDistination(const Node& N) const {
-    return maxheight < N.maxheight ||
-           (maxheight == N.maxheight && height < N.height);
+    return maxheight < N.maxheight || (maxheight == N.maxheight && pathlen < N.pathlen);
   }
 };
 
@@ -208,10 +233,13 @@ void Robot::Correct(Environment* env)
 
   for (unsigned int x = 0 ; x < vecsize; ++x) {
     for (unsigned int y = 0; y < vecsize; ++y) {
+      Node& ND = space.Get(x, y);
+      //ND.setLoc(x, y);
+
       if (start.Distance(Point(x, y)) + 0.1 >= searchdist)
       {
         // Set all Nodes beyond range as destinations.
-        space.Get(x, y).destination = true;
+        ND.destination = true;
       }
       else {
         ++totalnodes;
@@ -265,32 +293,51 @@ void Robot::Correct(Environment* env)
     // Process neighbours
 
     const int xstart = (bestx > 0) ? bestx - 1 : bestx;
-    const int xend = (bestx + 1 < (int)vecsize) ? bestx + 1 : bestx;
+    const int xend = (bestx + 1 < space.xsize()) ? bestx + 1 : bestx;
+    const int ystart = (besty > 0) ? besty - 1 : besty;
+    const int yend = (besty + 1 < space.ysize()) ? besty + 1 : besty;
 
+    // First initiate all neighbours that are still uninitiated
     for (int x = xstart; x <= xend; ++x) 
     {
-      const int ystart = (besty > 0) ? besty - 1 : besty;
-      const int yend = (besty + 1 < (int)vecsize) ? besty + 1 : besty;
-
       for (int y = ystart; y <= yend; ++y)
       {
-        Node& Neighbour = space.Get(x, y);
+        Node& Neighbour = space.Get(x, y); // Could be me, doesn't matter
 
         if (!Neighbour.heightCalculated())
         {
+          // Initiate neighbour, connect to best, could be me
           Neighbour.height = (float)getHeight(origin + Point(10.0 * x, 10.0 * y));
-          Neighbour.Connect(currentNode, bestx, besty);
+          Neighbour.CheckBestIn(x, y, space);
           if (!Neighbour.destination && Neighbour.height <= minwalldist) {
             notvisited.push_back({x, y});
           }
         }
-        else if (Neighbour.bettervia(currentNode))
-        {
-          Neighbour.Connect(currentNode, bestx, besty);
-        }
+      }
+    }
 
-        if (Neighbour.destination && Neighbour.BetterDistination(BestDestinationNode)) {
-          BestDestinationNode = Neighbour;
+    // All are now initialised and everybody is connected to someone
+    // We just need to see if we can connect things up a bit better
+
+    bool changed = true;
+
+    while (changed)
+    {
+      changed = false;
+
+      for (int x = xstart; x <= xend; ++x) 
+      {
+        for (int y = ystart; y <= yend; ++y)
+        {
+          Node& N = space.Get(x, y);
+          
+          if (N.CheckBestIn(x, y, space)) {
+            changed = true;
+          }
+
+          if (N.destination && N.BetterDistination(BestDestinationNode)) {
+            BestDestinationNode = N;
+          }
         }
       }
     }
