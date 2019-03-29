@@ -73,6 +73,7 @@ void Robot::threadFunction(Environment* env)
       if (cancelThread) return;
 
       Sensor& s = sensors.at(snum);
+      const double distance = env->getDistance(s);  // Sleeps in sim!!
 
       const TimePoint tm = Clock::now();
       const auto d = tm - time;
@@ -87,7 +88,6 @@ void Robot::threadFunction(Environment* env)
       env->MoveRobot(musec); // Move robot in simulation, if relevant
       Move(env, musec);      // Move robot in internal representation
 
-      const double distance = env->getDistance(s);  // Sleeps in sim!!
 
       if (distance > 0.0) {
         if (distance < s.getMinDist()) {
