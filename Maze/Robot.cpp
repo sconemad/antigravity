@@ -138,6 +138,7 @@ void Robot::threadFunction(Environment* env)
           s.SetLast(p);   // Either to add or verify
 
           if (lastdist < 75) {
+            if (verify) std::cout << "Obstacle verified" << std::endl;
             verify = 0;
             std::lock_guard<std::mutex> lg(obstacleMutex);
             obstacles.push_back(Obstacle(p));
@@ -148,6 +149,7 @@ void Robot::threadFunction(Environment* env)
               verify = 0;
               ++snum;
             }
+            std::cout << "Verifying obstacle, distance " << lastdist << std::endl;
             continue;
           }
         }

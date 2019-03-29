@@ -310,6 +310,7 @@ class Sensor {
   double MoveDist;
   Angle angle;
   double mindist;
+  Point m_last;
 
 public:
   Sensor(int n, double x, double y, Angle a, double md = 50.0) :
@@ -339,9 +340,6 @@ public:
   bool Last() const {
     return m_last.x() != 0.0 || m_last.y() != 0.0;
   }
-
-private:
-  Point m_last;
 };
 
 
