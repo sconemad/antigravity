@@ -48,21 +48,21 @@ void Robot::Move(Environment* env, double musec)
   if (me.Distance(lastDropRight) > 20) {
     lastDropRight = me;
     std::lock_guard<std::mutex> lg(obstacleMutex);
-    drobstacles.push_back(Obstacle(me));
+    newdrobstacles.push_back(Obstacle(me));
   }
 
   me.Move(-hpi, wid);
   if (me.Distance(lastDropLeft) > 20) {
     lastDropLeft = me;
     std::lock_guard<std::mutex> lg(obstacleMutex);
-    drobstacles.push_back(Obstacle(me));
+    newdrobstacles.push_back(Obstacle(me));
   }
 }
 
 void Robot::threadFunction(Environment* env)
 {
   static TimePoint time = Clock::now();
-  constexpr bool verification = true;
+  constexpr bool verification = false;
   int verify = 0;
 
   while (true) {
@@ -111,7 +111,7 @@ void Robot::threadFunction(Environment* env)
 
         if (!verification) {
           std::lock_guard<std::mutex> lg(obstacleMutex);
-          obstacles.push_back(Obstacle(p));
+          newobstacles.push_back(Obstacle(p));
         }
         else {
           if (!s.Last()) {
@@ -121,7 +121,7 @@ void Robot::threadFunction(Environment* env)
             s.SetLast(p);
             verify = 0;
             std::lock_guard<std::mutex> lg(obstacleMutex);
-            obstacles.push_back(Obstacle(p));
+            newobstacles.push_back(Obstacle(p));
             ++snum;
             continue;
           }
@@ -141,7 +141,7 @@ void Robot::threadFunction(Environment* env)
             if (verify) std::cout << "Obstacle verified" << std::endl;
             verify = 0;
             std::lock_guard<std::mutex> lg(obstacleMutex);
-            obstacles.push_back(Obstacle(p));
+            newobstacles.push_back(Obstacle(p));
           }
           else {
             // Too far, redo sensor to verify if measurement is correct
@@ -223,10 +223,19 @@ void Robot::Correct(Environment* env)
   {
     std::lock_guard<std::mutex> lg(obstacleMutex);
 
+    obstacles.insert(obstacles.end(), newobstacles.begin(), newobstacles.end());
+    newobstacles.clear();
+
     if (obstacles.size() > MaxObstacles) {
       const int to_remove = obstacles.size() - MaxObstacles;
       obstacles.erase(obstacles.begin(), obstacles.begin() + to_remove);
     }
+  }
+  {
+    std::lock_guard<std::mutex> lg(obstacleMutex);
+
+    drobstacles.insert(drobstacles.end(), newdrobstacles.begin(), newdrobstacles.end());
+    newdrobstacles.clear();
     if (drobstacles.size() > MaxDrobstacles) {
       const int to_remove = drobstacles.size() - MaxDrobstacles;
       drobstacles.erase(drobstacles.begin(), drobstacles.begin() + to_remove);
@@ -397,7 +406,6 @@ void Robot::Correct(Environment* env)
 const std::vector<Point> Robot::GetObstacles() const
 {
   std::vector<Point> vec;
-  std::lock_guard<std::mutex> lg(obstacleMutex);
 
   vec.reserve(obstacles.size() + drobstacles.size() + plotpath.size() + 1);
 

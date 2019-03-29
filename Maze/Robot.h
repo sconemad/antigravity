@@ -30,13 +30,14 @@ protected:
   };
 
   mutable std::mutex obstacleMutex;
+  std::vector< Obstacle > newobstacles;    // Created by distance measurements
+  std::vector< Obstacle > newdrobstacles;  // Created by dropping an obstacles behind the robot
+
   std::vector< Obstacle > obstacles;    // Created by distance measurements
   std::vector< Obstacle > drobstacles;  // Created by dropping an obstacles behind the robot
 
   double getHeight(const Point p) const
   {
-    std::lock_guard<std::mutex> lg(obstacleMutex);
-
     // Get distance to nearest obstacle
     double nearestssq = std::numeric_limits<double>::max();
     for (const Obstacle& ob : obstacles) {
