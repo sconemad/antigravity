@@ -13,7 +13,7 @@ static double safeminwalldist = std::numeric_limits<double>::max();
 static double minwalldist = std::numeric_limits<double>::max();
 
 static const unsigned int MaxObstacles = 100;
-static const unsigned int MaxDrobstacles = 6;
+static const unsigned int MaxDrobstacles = 20;
 
 double Robot::Obstacle::steepness = 100.0;
 
