@@ -62,11 +62,17 @@ void Robot::Move(Environment* env, double musec)
 void Robot::threadFunction(Environment* env)
 {
   static TimePoint time = Clock::now();
+  constexpr bool verification = true;
+  int verify = 0;
 
   while (true) {
-    for (Sensor& s : sensors)
+    size_t snum = 0;
+
+    while (snum < sensors.size())
     {
       if (cancelThread) return;
+
+      Sensor& s = sensors.at(snum);
 
       const TimePoint tm = Clock::now();
       const auto d = tm - time;
@@ -78,8 +84,8 @@ void Robot::threadFunction(Environment* env)
       }
       time = tm;
 
-      Move(env, musec);      // Move robot in internal representation
       env->MoveRobot(musec); // Move robot in simulation, if relevant
+      Move(env, musec);      // Move robot in internal representation
 
       const double distance = env->getDistance(s);  // Sleeps in sim!!
 
@@ -103,44 +109,50 @@ void Robot::threadFunction(Environment* env)
         // Get location of hit
         p.Move(s.getAngle(), distance);
 
-//        s.SetLast(p);
-        std::lock_guard<std::mutex> lg(obstacleMutex);
-        obstacles.push_back(Obstacle(p));
-
-/*      if (!s.Last()) {
-          // First call for this sensor, make sure to add obstacle
-          // Could skip this. First measurement will then be verified
-          // The choice is between safer and faster
-          s.SetLast(p);
-          verify = false;
-          std::lock_guard<std::mutex> lg(obstacleMutex);
-          obstacles.push_back(Obstacle(p));
-          ++snum;
-          continue;
-        }
-
-        // Only add obstacle if it's not too close to the last one, or too far
-        const double lastdist = s.DistanceToLast(p);
-
-        if (lastdist < 15 && !verify) {
-          // Too close and not verifying, do nothing
-          ++snum;
-          continue;
-        }
-
-        s.SetLast(p);   // Either to add or verify
-
-        if (lastdist < 50) {
-          verify = false;
+        if (!verification) {
           std::lock_guard<std::mutex> lg(obstacleMutex);
           obstacles.push_back(Obstacle(p));
         }
         else {
-          // Too far, redo sensor to verify if measurement is correct
-          verify = true;
-          continue;
-        } */
+          if (!s.Last()) {
+            // First call for this sensor, make sure to add obstacle
+            // Could skip this. First measurement will then be verified
+            // The choice is between safer and faster
+            s.SetLast(p);
+            verify = 0;
+            std::lock_guard<std::mutex> lg(obstacleMutex);
+            obstacles.push_back(Obstacle(p));
+            ++snum;
+            continue;
+          }
+
+          // Only add obstacle if it's not too close to the last one, or too far
+          const double lastdist = s.DistanceToLast(p);
+
+          if (lastdist < 15 && verify == 0) {
+            // Too close and not verifying, do nothing
+            ++snum;
+            continue;
+          }
+
+          s.SetLast(p);   // Either to add or verify
+
+          if (lastdist < 75) {
+            verify = 0;
+            std::lock_guard<std::mutex> lg(obstacleMutex);
+            obstacles.push_back(Obstacle(p));
+          }
+          else {
+            // Too far, redo sensor to verify if measurement is correct
+            if (++verify == 3) {
+              verify = 0;
+              ++snum;
+            }
+            continue;
+          }
+        }
       }
+      ++snum;
     }
   }
 }
@@ -330,7 +342,7 @@ void Robot::Correct(Environment* env)
         for (int y = ystart; y <= yend; ++y)
         {
           Node& N = space.Get(x, y);
-          
+
           if (N.CheckBestIn(x, y, space)) {
             changed = true;
           }
