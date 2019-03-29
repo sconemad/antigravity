@@ -113,8 +113,8 @@ int main(int argc, char* argv[])
   R.initiate(env.get());                        // Define dimensions and sensors (add maxspeed?)
   R.SetMaxSpeed(maxSpeed * maxPerc / 100.0);    // mm/s , speed limit
   env->setMaxSpeed(maxSpeed);                   // mm/s , maximum speed possible
-  R.SetSpeed(left, right);
-  env->setSpeed(left * maxSpeed * maxPerc, right * maxSpeed * maxPerc);
+  R.SetSpeedFraction(left, right);
+  env->setSpeed(left * maxSpeed * maxPerc / 100.0, right * maxSpeed * maxPerc / 100.0);
 
   try {
     int steps = 0;

@@ -58,11 +58,6 @@ void Robot::Move(Environment* env, double musec)
   }
 }
 
-void Robot::Move(Environment* M, double left, double right, bool move) {
-  if (move) SetSpeed(left, right);
-  else SetSpeed(0.0, 0.0);
-}
-
 void Robot::threadFunction(Environment* env)
 {
   static TimePoint time = Clock::now();

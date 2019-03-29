@@ -50,7 +50,7 @@ class Lidar(Module):
 
     def _select(self, bus):
         self.i2c.writeto(self.I2C_MUX_ADDR, bytearray([int(2**bus)]))
-        time.sleep(0.1)
+        time.sleep(0.01)
 
     def getSensor(self, sensor):
         if (sensor == self.DIST_LEFT):

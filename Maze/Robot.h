@@ -103,7 +103,7 @@ public:
     maxspeed = m;
   }
 
-  void SetSpeed(double left, double right) {
+  void SetSpeedFraction(double left, double right) {
     speedl = left * maxspeed;
     speedr = right * maxspeed;
   }
@@ -135,9 +135,6 @@ public:
   }
 
   void Move(Environment* M, double musec);
-
-  // Test function, move forward at maximum speed
-  void Move(Environment* M, double left, double right, bool move);
 
   void Correct(Environment* env);
 
