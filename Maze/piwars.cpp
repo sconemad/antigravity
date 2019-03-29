@@ -26,14 +26,15 @@ int main(int argc, char* argv[])
   bool sim = false;
   int maxsteps = 100000;
   double maxSpeed = 1350.0;
-  double maxPerc = 100.0;
+  double maxPerc = 10.0;
   double left = 1.0;
   double right = 1.0;
-  int offset = 60;
+  int offset = 50;
   int plandist = 100;
   double steep = 100.0;
   double angleFac = 0.25;
   bool correct = true;
+  const int stepDuration = 50; // ms
 
   for (int a = 1; a < argc; ++a) {
     if (strcmp(argv[a], "-help") == 0) {
@@ -41,8 +42,8 @@ int main(int argc, char* argv[])
       std::cout << "    -sim            : Run a marsmaze simulation instead of reality" << std::endl;
       std::cout << "    -steps <n>      : Number of processing steps to do, default 100000" << std::endl;
       std::cout << "    -maxspeed <f>   : Maximum speed of hardware, mm/s, default 1350" << std::endl;
-      std::cout << "    -maxperc <f>    : Maximum speed percentage, default 100.0" << std::endl;
-      std::cout << "    -offset <n>     : Offset for center of planning, default = 60mm" << std::endl;
+      std::cout << "    -maxperc <f>    : Maximum speed percentage, default 10.0" << std::endl;
+      std::cout << "    -offset <n>     : Offset for center of planning, default = 50mm" << std::endl;
       std::cout << "    -plandist <n>   : Distance for planning, default 100cm" << std::endl;
       std::cout << "    -steepness <n>  : steepness, default 100" << std::endl;
       std::cout << "    -anglefac <n>   : Angle change factor, default 0.25" << std::endl;
@@ -132,7 +133,7 @@ int main(int argc, char* argv[])
         R.Correct(env.get());
       }
       else {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(stepDuration));
         std::cout << std::endl;
       }
     }
