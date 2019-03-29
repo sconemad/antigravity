@@ -21,7 +21,7 @@ protected:
     explicit Obstacle(const Point& p) : Point(p) {}
 
     static double height(double distance) {
-      return pow(2.0, -distance / steepness);
+      return pow(2.0, -(distance - 100) / steepness);
     }
 
     double Value(const Point& p) const {

@@ -43,13 +43,14 @@ void Robot::Move(Environment* env, double musec)
   // Leave drop obstacles
   Pos me = P;
   me.Move(pi, 200.0);
+  
   me.Move(hpi, wid / 2.0);
-
   if (me.Distance(lastDropRight) > 20) {
     lastDropRight = me;
     std::lock_guard<std::mutex> lg(obstacleMutex);
     drobstacles.push_back(Obstacle(me));
   }
+
   me.Move(-hpi, wid);
   if (me.Distance(lastDropLeft) > 20) {
     lastDropLeft = me;
@@ -67,9 +68,9 @@ void Robot::threadFunction(Environment* env)
     {
       if (cancelThread) return;
 
-      TimePoint tm = Clock::now();
-      auto d = tm - time;
-      double musec = (double)std::chrono::duration_cast<std::chrono::microseconds>(d).count();
+      const TimePoint tm = Clock::now();
+      const auto d = tm - time;
+      const double musec = (double)std::chrono::duration_cast<std::chrono::microseconds>(d).count();
       if (musec < 20000) {
         // We don't want to do more than 50 measurements a second
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -102,7 +103,7 @@ void Robot::threadFunction(Environment* env)
         // Get location of hit
         p.Move(s.getAngle(), distance);
 
-        s.SetLast(p);
+//        s.SetLast(p);
         std::lock_guard<std::mutex> lg(obstacleMutex);
         obstacles.push_back(Obstacle(p));
 
@@ -351,8 +352,7 @@ const std::vector<Point> Robot::GetObstacles() const
   C.Move(offset);
   C -= Point(searchdist * 10, searchdist * 10);
 
-  for (const Point& p : plotpath) {
-    Point rp = p;
+  for (Point rp : plotpath) {
     rp *= 10.0;
     rp += C;
     vec.emplace_back(rp);
@@ -383,9 +383,9 @@ void Robot2::initiate(Environment* env)
 
   env->setRobotDimensions(static_cast<int>(len), static_cast<int>(wid), static_cast<int>(tire));
 
-  sensors.push_back(Sensor(1, -30.0, 45.0, Angle(pi / 3.0),  100.0));
-  sensors.push_back(Sensor(2,   0.0, 35.0, Angle(0.0),       100.0));
-  sensors.push_back(Sensor(3,  30.0, 45.0, Angle(-pi / 3.0), 100.0));
+  sensors.push_back(Sensor(1, -30.0, 45.0, Angle(pi / 3.0),  120.0));
+  sensors.push_back(Sensor(2,   0.0, 35.0, Angle(0.0),       150.0));
+  sensors.push_back(Sensor(3,  30.0, 45.0, Angle(-pi / 3.0), 120.0));
 }
 
 void Robot3::initiate(Environment* env)
