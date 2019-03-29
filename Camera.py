@@ -42,7 +42,9 @@ class Camera(threading.Thread):
         return cv2.LUT(self.rawCapture.array, table)
 
     def find_colour(self, lower_range, upper_range, lower_split_range, upper_split_range):
+        print("find a colour")
         height, width, cols = self.gamma_adjusted.shape
+        #height, width, cols = self.rawCapture.array
         self.hsv = cv2.cvtColor(cv2.flip(self.gamma_adjusted, 0), cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(self.hsv, lower_range, upper_range)
         if lower_split_range is not np.empty:
@@ -95,9 +97,10 @@ class Camera(threading.Thread):
             self.cam.capture(self.rawCapture, format="bgr")
             print("Capture frame");
             # Not sure how helpful the gamma adjustment is
-            self.gamma_adjusted = self.adjust_gamma(2.5)
+            self.gamma_adjusted = self.adjust_gamma(1.5)
             #cv2.imshow("Frame",cv2.flip(self.gamma_adjusted, -1))
             #cv2.waitKey(2)
 
 if __name__ == "__main__":
     camera = Camera()
+    camera.run()
