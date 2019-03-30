@@ -12,8 +12,10 @@ using TimePoint = std::chrono::time_point<Clock>;
 static double safeminwalldist = std::numeric_limits<double>::max();
 static double minwalldist = std::numeric_limits<double>::max();
 
-static const unsigned int MaxObstacles = 100;
-static const unsigned int MaxDrobstacles = 20;
+static constexpr unsigned int MaxObstacles = 50;
+static constexpr unsigned int MaxDrobstacles = 20;
+
+static constexpr double MaxObstDistance = 1100.0;
 
 double Robot::Obstacle::steepness = 100.0;
 
@@ -36,7 +38,6 @@ void Robot::Move(Environment* env, double musec)
   {
     std::lock_guard<std::mutex> lg(speedMutex);
     P.Curve(speedl, speedr, musec / 1000.0, turnWidth());
-
     setRobotPos(P);
   }
 
@@ -47,33 +48,26 @@ void Robot::Move(Environment* env, double musec)
   me.Move(hpi, wid / 2.0);
   if (me.Distance(lastDropRight) > 20) {
     lastDropRight = me;
-    std::lock_guard<std::mutex> lg(obstacleMutex);
-    newdrobstacles.push_back(Obstacle(me));
+    std::lock_guard<std::mutex> lg(drobstacleMutex);
+    drobstacles.push_back(Obstacle(me));
   }
 
   me.Move(-hpi, wid);
   if (me.Distance(lastDropLeft) > 20) {
     lastDropLeft = me;
-    std::lock_guard<std::mutex> lg(obstacleMutex);
-    newdrobstacles.push_back(Obstacle(me));
+    std::lock_guard<std::mutex> lg(drobstacleMutex);
+    drobstacles.push_back(Obstacle(me));
   }
 }
 
 void Robot::threadFunction(Environment* env)
 {
   static TimePoint time = Clock::now();
-  constexpr bool verification = false;
-  int verify = 0;
 
   while (true) {
-    size_t snum = 0;
-
-    while (snum < sensors.size())
+    for (Sensor& s : sensors)
     {
       if (cancelThread) return;
-
-      Sensor& s = sensors.at(snum);
-      const double distance = env->getDistance(s);  // Sleeps in sim!!
 
       const TimePoint tm = Clock::now();
       const auto d = tm - time;
@@ -86,8 +80,10 @@ void Robot::threadFunction(Environment* env)
       time = tm;
 
       env->MoveRobot(musec); // Move robot in simulation, if relevant
-      Move(env, musec);      // Move robot in internal representation
 
+      const double distance = env->getDistance(s);  // Sleeps in sim!!
+
+      Move(env, musec);      // Move robot in internal representation
 
       if (distance > 0.0) {
         if (distance < s.getMinDist()) {
@@ -97,7 +93,7 @@ void Robot::threadFunction(Environment* env)
           return;
         }
 
-        if (distance > 1500.0) {
+        if (distance > MaxObstDistance) {
           continue;
         }
 
@@ -109,52 +105,43 @@ void Robot::threadFunction(Environment* env)
         // Get location of hit
         p.Move(s.getAngle(), distance);
 
-        if (!verification) {
+        std::lock_guard<std::mutex> lg(obstacleMutex);
+        obstacles.push_back(Obstacle(p));
+
+/*      if (!s.Last()) {
+          // First call for this sensor, make sure to add obstacle
+          // Could skip this. First measurement will then be verified
+          // The choice is between safer and faster
+          s.SetLast(p);
+          verify = false;
           std::lock_guard<std::mutex> lg(obstacleMutex);
-          newobstacles.push_back(Obstacle(p));
+          obstacles.push_back(Obstacle(p));
+          ++snum;
+          continue;
+        }
+
+        // Only add obstacle if it's not too close to the last one, or too far
+        const double lastdist = s.DistanceToLast(p);
+
+        if (lastdist < 15 && !verify) {
+          // Too close and not verifying, do nothing
+          ++snum;
+          continue;
+        }
+
+        s.SetLast(p);   // Either to add or verify
+
+        if (lastdist < 50) {
+          verify = false;
+          std::lock_guard<std::mutex> lg(obstacleMutex);
+          obstacles.push_back(Obstacle(p));
         }
         else {
-          if (!s.Last()) {
-            // First call for this sensor, make sure to add obstacle
-            // Could skip this. First measurement will then be verified
-            // The choice is between safer and faster
-            s.SetLast(p);
-            verify = 0;
-            std::lock_guard<std::mutex> lg(obstacleMutex);
-            newobstacles.push_back(Obstacle(p));
-            ++snum;
-            continue;
-          }
-
-          // Only add obstacle if it's not too close to the last one, or too far
-          const double lastdist = s.DistanceToLast(p);
-
-          if (lastdist < 15 && verify == 0) {
-            // Too close and not verifying, do nothing
-            ++snum;
-            continue;
-          }
-
-          s.SetLast(p);   // Either to add or verify
-
-          if (lastdist < 75) {
-            if (verify) std::cout << "Obstacle verified" << std::endl;
-            verify = 0;
-            std::lock_guard<std::mutex> lg(obstacleMutex);
-            newobstacles.push_back(Obstacle(p));
-          }
-          else {
-            // Too far, redo sensor to verify if measurement is correct
-            if (++verify == 3) {
-              verify = 0;
-              ++snum;
-            }
-            std::cout << "Verifying obstacle, distance " << lastdist << std::endl;
-            continue;
-          }
-        }
+          // Too far, redo sensor to verify if measurement is correct
+          verify = true;
+          continue;
+        } */
       }
-      ++snum;
     }
   }
 }
@@ -167,22 +154,16 @@ struct Node
   float maxheight = std::numeric_limits<float>::max();  // max height of path to this node
   float height = std::numeric_limits<float>::max();     // height at this node
   float pathlen = std::numeric_limits<float>::max();
-  //short mx, my;
   short px = -1, py = -1; // previous node
   bool destination = false;
-
-  //void setLoc(short x, short y) {
-  //  mx = x;
-  //  my = y;
-  //}
 
   bool CheckBestIn(short mx, short my, const Vector2D<Node>& nvec) {
     assert(heightCalculated());
     bool change = false;
     for (short x = mx - 1; x <= mx + 1; ++x) {
-      if (x >= 0 && x < nvec.xsize()) {
+      if (x >= 0 && x < (short)nvec.xsize()) {
         for (short y = my - 1; y <= my + 1; ++y) {
-          if (y >= 0 && y < nvec.ysize() && (x != mx || y != my)) {
+          if (y >= 0 && y < (short)nvec.ysize() && (x != mx || y != my)) {
             const Node& other = nvec.Get(x, y);
             if (bettervia(other)) {
               Connect(other, x, y);
@@ -202,7 +183,6 @@ struct Node
   // Connecting via N is better than my existing connection
   bool bettervia(const Node& N) const {
     const float Nmax = std::max(height, N.maxheight);
-
     return maxheight > Nmax || (maxheight == Nmax && N.pathlen + height < pathlen);
   }
 
@@ -223,19 +203,14 @@ void Robot::Correct(Environment* env)
   {
     std::lock_guard<std::mutex> lg(obstacleMutex);
 
-    obstacles.insert(obstacles.end(), newobstacles.begin(), newobstacles.end());
-    newobstacles.clear();
-
     if (obstacles.size() > MaxObstacles) {
       const int to_remove = obstacles.size() - MaxObstacles;
       obstacles.erase(obstacles.begin(), obstacles.begin() + to_remove);
     }
   }
   {
-    std::lock_guard<std::mutex> lg(obstacleMutex);
+    std::lock_guard<std::mutex> lg(drobstacleMutex);
 
-    drobstacles.insert(drobstacles.end(), newdrobstacles.begin(), newdrobstacles.end());
-    newdrobstacles.clear();
     if (drobstacles.size() > MaxDrobstacles) {
       const int to_remove = drobstacles.size() - MaxDrobstacles;
       drobstacles.erase(drobstacles.begin(), drobstacles.begin() + to_remove);
@@ -256,13 +231,10 @@ void Robot::Correct(Environment* env)
 
   for (unsigned int x = 0 ; x < vecsize; ++x) {
     for (unsigned int y = 0; y < vecsize; ++y) {
-      Node& ND = space.Get(x, y);
-      //ND.setLoc(x, y);
-
       if (start.Distance(Point(x, y)) + 0.1 >= searchdist)
       {
         // Set all Nodes beyond range as destinations.
-        ND.destination = true;
+        space.Get(x, y).destination = true;
       }
       else {
         ++totalnodes;
@@ -271,8 +243,6 @@ void Robot::Correct(Environment* env)
   }
 
   const Pos RPos = getRobotPos();
-  //std::cout << "Position: " << RPos.x() << ", " << RPos.y();
-  //std::cout << " Angle: " << RPos.getAngle();
 
   Pos centre = RPos;
   centre.Move(offset);
@@ -316,9 +286,9 @@ void Robot::Correct(Environment* env)
     // Process neighbours
 
     const int xstart = (bestx > 0) ? bestx - 1 : bestx;
-    const int xend = (bestx + 1 < space.xsize()) ? bestx + 1 : bestx;
+    const int xend = (bestx + 1 < (int)space.xsize()) ? bestx + 1 : bestx;
     const int ystart = (besty > 0) ? besty - 1 : besty;
-    const int yend = (besty + 1 < space.ysize()) ? besty + 1 : besty;
+    const int yend = (besty + 1 < (int)space.ysize()) ? besty + 1 : besty;
 
     // First initiate all neighbours that are still uninitiated
     for (int x = xstart; x <= xend; ++x) 
@@ -353,7 +323,7 @@ void Robot::Correct(Environment* env)
         for (int y = ystart; y <= yend; ++y)
         {
           Node& N = space.Get(x, y);
-
+          
           if (N.CheckBestIn(x, y, space)) {
             changed = true;
           }
@@ -406,6 +376,8 @@ void Robot::Correct(Environment* env)
 const std::vector<Point> Robot::GetObstacles() const
 {
   std::vector<Point> vec;
+  std::lock_guard<std::mutex> lg(obstacleMutex);
+  std::lock_guard<std::mutex> ld(drobstacleMutex);
 
   vec.reserve(obstacles.size() + drobstacles.size() + plotpath.size() + 1);
 
