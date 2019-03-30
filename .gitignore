@@ -105,6 +105,8 @@ venv.bak/
 
 # Temporary files
 *~
+.#*
+\#*
 
 # Binary files
 Maze/Maze
