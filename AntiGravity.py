@@ -34,7 +34,8 @@ from Turtle import Turtle
 from Display import Display
 from Network import Network
 from Heading import Heading
-#from Maze import Maze
+from Maze import Maze
+from Omni import Omni
 #from Maze_deadreckoning import Maze2
 from Straightline import Straightline
 
@@ -63,15 +64,20 @@ class AntiGravity(Bot, JSCallback):
         self.turtle = Turtle(self)
         self.js = JS(self)
         self.camera = Camera()
-        
+
+        # Update docs:
         # Mode modules - launched by the 'x' (AKA SQUARE) button
         # Functions MUST implement a start() method
+        
+        # Add module here and import as required
         self.modules = [
             Dummy(self),
             self.dist, # Lidar is also a module
             Shutdown(self),
             Network(self),
             Heading(self),
+            Maze(self),
+            Omni(self),
             Rainbow(self)
         ]
 #            "rainbow": Rainbow(self),
