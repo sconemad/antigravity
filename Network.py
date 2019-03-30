@@ -13,4 +13,5 @@ class Network(Module):
         self.logMsg("WLAN0 IP Address: %s " % self.WLAN_IP_ADDR)
 
     def getStatus(self):
+        # TTD - check to see if network is still OK ... 
         return self.WLAN_IP_ADDR

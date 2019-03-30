@@ -33,6 +33,7 @@ from Calibrate import Calibrate
 from Turtle import Turtle
 from Display import Display
 from Network import Network
+from Heading import Heading
 #from Maze import Maze
 #from Maze_deadreckoning import Maze2
 from Straightline import Straightline
@@ -70,6 +71,7 @@ class AntiGravity(Bot, JSCallback):
             self.dist, # Lidar is also a module
             Shutdown(self),
             Network(self),
+            Heading(self),
             Rainbow(self)
         ]
 #            "rainbow": Rainbow(self),
