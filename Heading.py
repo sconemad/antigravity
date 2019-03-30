@@ -58,8 +58,9 @@ class Heading(Module):
             RunningAvg = 0
             count = 0
             for i in IH:
+                InitialHeading += i
                 # Handle things close to 0 / 360 switchover so it doesn't mess up the average
-                i -= 360 
+                i -= 180
                 delta = RunningAvg - i
                 if delta > 180:
                     i += 360
@@ -67,7 +68,11 @@ class Heading(Module):
                     i -= 360
                 RunningAvg = ( RunningAvg * count + i)/(count + 1)    
                     
-                InitialHeading += i
+
+            RunningAvg += 180
+            if RunningAvg < 0:
+                RunningAvg += 360
+                
             InitialHeading = InitialHeading / len(IH)
             print("Average InitialHeading: %3.2f / %3.2f    " % ( InitialHeading, RunningAvg)  )
             self.InitialHeading = RunningAvg
