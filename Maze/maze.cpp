@@ -271,7 +271,6 @@ void Simulation::write(std::string filename, const std::vector<Point>& pvec)
 }
 */
 
-#ifndef WIN32
 void Environment::write(std::string filename, const std::vector<Point>& pvec)
 {
   int minx = std::numeric_limits<int>::max();
@@ -313,9 +312,8 @@ void Environment::write(std::string filename, const std::vector<Point>& pvec)
     }
   }
 
-  generateBitmapImage(area, area.at(0).size(), area.size(), filename.c_str());
+  generateBitmapImage(area, (int)area.at(0).size(), (int)area.size(), filename.c_str());
 }
-#endif
 
 //////////////////////////  Maze1 2018 maze  ////////////////////////
 
